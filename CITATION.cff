@@ -1,0 +1,38 @@
+cff-version: 1.2.0
+title: "Scientific Writing Skills: a Claude plugin distilled from Writing in the Sciences"
+message: "If you use this plugin in work you publish, please cite it, and please cite the course it derives from."
+type: software
+authors:
+  - family-names: Sosa
+    given-names: David
+    alias: dvdsosa
+repository-code: "https://github.com/dvdsosa/scientific-writing-skills"
+url: "https://github.com/dvdsosa/scientific-writing-skills"
+abstract: >-
+  Six AI skills and four analysis scripts for scientific writing, derived from
+  all eight units of Stanford's Writing in the Sciences (Kristin Sainani). Covers
+  sentence and paragraph editing, IMRaD manuscript structure, the writing
+  process, publication ethics and peer review, grant proposals and letters, and
+  communication with general audiences.
+keywords:
+  - scientific writing
+  - academic writing
+  - manuscript editing
+  - IMRaD
+  - peer review
+  - grant writing
+  - science communication
+  - large language models
+license: MIT
+version: 1.0.0
+date-released: "2026-09-08"
+references:
+  - type: generic
+    title: "Writing in the Sciences"
+    authors:
+      - family-names: Sainani
+        given-names: Kristin
+    institution:
+      name: Stanford University
+    url: "https://online.stanford.edu/courses/som-y0010-writing-sciences"
+    notes: "The source course. All pedagogical credit belongs here."

@@ -1,0 +1,46 @@
+\documentclass{article}
+\usepackage{graphicx}
+\begin{document}
+\title{Real-time defect detection on a KV260 platform}
+
+\begin{abstract}
+We evaluated a lightweight detector on 930 images acquired from an embedded
+camera. Accuracy reached 94.2\% at 31.4573 frames per second. The obese group
+showed higher latency. Detection improved by 18\%.
+\end{abstract}
+
+\section{Introduction}
+As it is well known, edge inference has been related to a profile of lower
+latency. Deep learning has transformed computer vision over the past decade,
+with applications in medicine, autonomous driving, agriculture and industrial
+inspection. However, few studies have addressed this on constrained hardware.
+Therefore, there are many ways in which the pipeline can be arranged.
+
+\section{Methods}
+Images were acquired using a CMOS sensor. The obese group ($n = 930$) and the
+lean group were compared. Frames were processed by the FPGA fabric. The DPU
+(Deep Learning Processing Unit) was clocked at 300 MHz. We measured PSNR and
+SSIM for each frame.
+
+\section{Results}
+Table~\ref{tab:acc} shows the performance of the two groups. The heavier group
+achieved a mean accuracy of 94.2\% with a standard deviation of 1.2, while the
+lighter group achieved a mean accuracy of 91.8\% with a standard deviation of
+1.4. The mean latency of the heavier group was 12.4 $\pm$ 1.03 ms and the mean
+latency of the lighter group was 15.1 $\pm$ 1.2 ms. The DPU throughput was
+31.4573 frames per second.
+
+\begin{table}[t]
+\caption{Performance by group.}
+\label{tab:acc}
+\begin{tabular}{lcc}
+group & accuracy & latency \\
+\end{tabular}
+\end{table}
+
+\section{Discussion}
+This study is subject to a number of limitations. The sample size was limited
+and further work is required. The provided results demonstrate that SSIM values
+were not inconsistent with prior work.
+
+\end{document}

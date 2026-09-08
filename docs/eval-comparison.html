@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eval Review</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" integrity="sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --bg: #faf9f5;
+      --surface: #ffffff;
+      --border: #e8e6dc;
+      --text: #141413;
+      --text-muted: #b0aea5;
+      --accent: #d97757;
+      --accent-hover: #c4613f;
+      --green: #788c5d;
+      --green-bg: #eef2e8;
+      --red: #c44;
+      --red-bg: #fceaea;
+      --header-bg: #141413;
+      --header-text: #faf9f5;
+      --radius: 6px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Lora', Georgia, serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ---- Header ---- */
+    .header {
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .header h1 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    .header .instructions {
+      font-size: 0.8rem;
+      opacity: 0.7;
+      margin-top: 0.25rem;
+    }
+    .header .progress {
+      font-size: 0.875rem;
+      opacity: 0.8;
+      text-align: right;
+    }
+
+    /* ---- Main content ---- */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* ---- Sections ---- */
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      flex-shrink: 0;
+    }
+    .section-header {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.75rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .section-body {
+      padding: 1rem;
+    }
+
+    /* ---- Config badge ---- */
+    .config-badge {
+      display: inline-block;
+      padding: 0.2rem 0.625rem;
+      border-radius: 9999px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-left: 0.75rem;
+      vertical-align: middle;
+    }
+    .config-badge.config-primary {
+      background: rgba(33, 150, 243, 0.12);
+      color: #1976d2;
+    }
+    .config-badge.config-baseline {
+      background: rgba(255, 193, 7, 0.15);
+      color: #f57f17;
+    }
+
+    /* ---- Prompt ---- */
+    .prompt-text {
+      white-space: pre-wrap;
+      font-size: 0.9375rem;
+      line-height: 1.6;
+    }
+
+    /* ---- Outputs ---- */
+    .output-file {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .output-file + .output-file {
+      margin-top: 1rem;
+    }
+    .output-file-header {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .output-file-header .dl-btn {
+      font-size: 0.7rem;
+      color: var(--accent);
+      text-decoration: none;
+      cursor: pointer;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-weight: 500;
+      opacity: 0.8;
+    }
+    .output-file-header .dl-btn:hover {
+      opacity: 1;
+      text-decoration: underline;
+    }
+    .output-file-content {
+      padding: 0.75rem;
+      overflow-x: auto;
+    }
+    .output-file-content pre {
+      font-size: 0.8125rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+    }
+    .output-file-content img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+    }
+    .output-file-content iframe {
+      width: 100%;
+      height: 600px;
+      border: none;
+    }
+    .output-file-content table {
+      border-collapse: collapse;
+      font-size: 0.8125rem;
+      width: 100%;
+    }
+    .output-file-content table td,
+    .output-file-content table th {
+      border: 1px solid var(--border);
+      padding: 0.375rem 0.5rem;
+      text-align: left;
+    }
+    .output-file-content table th {
+      background: var(--bg);
+      font-weight: 600;
+    }
+    .output-file-content .download-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+    .output-file-content .download-link:hover {
+      background: var(--border);
+    }
+    .empty-state {
+      color: var(--text-muted);
+      font-style: italic;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    /* ---- Feedback ---- */
+    .prev-feedback {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.625rem 0.75rem;
+      margin-top: 0.75rem;
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .prev-feedback-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.25rem;
+      color: var(--text-muted);
+    }
+    .feedback-textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 0.9375rem;
+      line-height: 1.5;
+      resize: vertical;
+      color: var(--text);
+    }
+    .feedback-textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    .feedback-status {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      min-height: 1.1em;
+    }
+
+    /* ---- Grades (collapsible) ---- */
+    .grades-toggle {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .grades-toggle:hover {
+      color: var(--accent);
+    }
+    .grades-toggle .arrow {
+      margin-right: 0.5rem;
+      transition: transform 0.15s;
+      font-size: 0.75rem;
+    }
+    .grades-toggle .arrow.open {
+      transform: rotate(90deg);
+    }
+    .grades-content {
+      display: none;
+      margin-top: 0.75rem;
+    }
+    .grades-content.open {
+      display: block;
+    }
+    .grades-summary {
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .grade-badge {
+      display: inline-block;
+      padding: 0.125rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .grade-pass { background: var(--green-bg); color: var(--green); }
+    .grade-fail { background: var(--red-bg); color: var(--red); }
+    .assertion-list {
+      list-style: none;
+    }
+    .assertion-item {
+      padding: 0.625rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8125rem;
+    }
+    .assertion-item:last-child { border-bottom: none; }
+    .assertion-status {
+      font-weight: 600;
+      margin-right: 0.5rem;
+    }
+    .assertion-status.pass { color: var(--green); }
+    .assertion-status.fail { color: var(--red); }
+    .assertion-evidence {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+      padding-left: 1.5rem;
+    }
+
+    /* ---- View tabs ---- */
+    .view-tabs {
+      display: flex;
+      gap: 0;
+      padding: 0 2rem;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .view-tab {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.625rem 1.25rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .view-tab:hover { color: var(--text); }
+    .view-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .view-panel { display: none; }
+    .view-panel.active { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+
+    /* ---- Benchmark view ---- */
+    .benchmark-view {
+      padding: 1.5rem 2rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .benchmark-table {
+      border-collapse: collapse;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.8125rem;
+      width: 100%;
+      margin-bottom: 1.5rem;
+    }
+    .benchmark-table th, .benchmark-table td {
+      padding: 0.625rem 0.75rem;
+      text-align: left;
+      border: 1px solid var(--border);
+    }
+    .benchmark-table th {
+      font-family: 'Poppins', sans-serif;
+      background: var(--header-bg);
+      color: var(--header-text);
+      font-weight: 500;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .benchmark-table tr:hover { background: var(--bg); }
+    .benchmark-table tr.benchmark-row-with { background: rgba(33, 150, 243, 0.06); }
+    .benchmark-table tr.benchmark-row-without { background: rgba(255, 193, 7, 0.06); }
+    .benchmark-table tr.benchmark-row-with:hover { background: rgba(33, 150, 243, 0.12); }
+    .benchmark-table tr.benchmark-row-without:hover { background: rgba(255, 193, 7, 0.12); }
+    .benchmark-table tr.benchmark-row-avg { font-weight: 600; border-top: 2px solid var(--border); }
+    .benchmark-table tr.benchmark-row-avg.benchmark-row-with { background: rgba(33, 150, 243, 0.12); }
+    .benchmark-table tr.benchmark-row-avg.benchmark-row-without { background: rgba(255, 193, 7, 0.12); }
+    .benchmark-delta-positive { color: var(--green); font-weight: 600; }
+    .benchmark-delta-negative { color: var(--red); font-weight: 600; }
+    .benchmark-notes {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+    }
+    .benchmark-notes h3 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+    }
+    .benchmark-notes ul {
+      list-style: disc;
+      padding-left: 1.25rem;
+    }
+    .benchmark-notes li {
+      font-size: 0.8125rem;
+      line-height: 1.6;
+      margin-bottom: 0.375rem;
+    }
+    .benchmark-empty {
+      color: var(--text-muted);
+      font-style: italic;
+      text-align: center;
+      padding: 3rem;
+    }
+
+    /* ---- Navigation ---- */
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+    .nav-btn {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text);
+      transition: all 0.15s;
+    }
+    .nav-btn:hover:not(:disabled) {
+      background: var(--bg);
+      border-color: var(--text-muted);
+    }
+    .nav-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .done-btn {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.5rem 1.5rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+    .done-btn:hover {
+      background: var(--bg);
+      border-color: var(--text-muted);
+    }
+    .done-btn.ready {
+      border: none;
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+    }
+    .done-btn.ready:hover {
+      background: var(--accent-hover);
+    }
+    /* ---- Done overlay ---- */
+    .done-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+    .done-overlay.visible {
+      display: flex;
+    }
+    .done-card {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 2rem 3rem;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 500px;
+    }
+    .done-card h2 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .done-card p {
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+    .done-card .btn-row {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+    .done-card button {
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.875rem;
+    }
+    .done-card button:hover {
+      background: var(--bg);
+    }
+    /* ---- Toast ---- */
+    .toast {
+      position: fixed;
+      bottom: 5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 0.625rem 1.25rem;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      z-index: 200;
+    }
+    .toast.visible {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" style="height:100vh; display:flex; flex-direction:column;">
+    <div class="header">
+      <div>
+        <h1>Eval Review: <span id="skill-name"></span></h1>
+        <div class="instructions">Review each output and leave feedback below. Navigate with arrow keys or buttons. When done, copy feedback and paste into Claude Code.</div>
+      </div>
+      <div class="progress" id="progress"></div>
+    </div>
+
+    <!-- View tabs (only shown when benchmark data exists) -->
+    <div class="view-tabs" id="view-tabs" style="display:none;">
+      <button class="view-tab active" onclick="switchView('outputs')">Outputs</button>
+      <button class="view-tab" onclick="switchView('benchmark')">Benchmark</button>
+    </div>
+
+    <!-- Outputs panel (qualitative review) -->
+    <div class="view-panel active" id="panel-outputs">
+    <div class="main">
+      <!-- Prompt -->
+      <div class="section">
+        <div class="section-header">Prompt <span class="config-badge" id="config-badge" style="display:none;"></span></div>
+        <div class="section-body">
+          <div class="prompt-text" id="prompt-text"></div>
+        </div>
+      </div>
+
+      <!-- Outputs -->
+      <div class="section">
+        <div class="section-header">Output</div>
+        <div class="section-body" id="outputs-body">
+          <div class="empty-state">No output files found</div>
+        </div>
+      </div>
+
+      <!-- Previous Output (collapsible) -->
+      <div class="section" id="prev-outputs-section" style="display:none;">
+        <div class="section-header">
+          <div class="grades-toggle" onclick="togglePrevOutputs()">
+            <span class="arrow" id="prev-outputs-arrow">&#9654;</span>
+            Previous Output
+          </div>
+        </div>
+        <div class="grades-content" id="prev-outputs-content"></div>
+      </div>
+
+      <!-- Grades (collapsible) -->
+      <div class="section" id="grades-section" style="display:none;">
+        <div class="section-header">
+          <div class="grades-toggle" onclick="toggleGrades()">
+            <span class="arrow" id="grades-arrow">&#9654;</span>
+            Formal Grades
+          </div>
+        </div>
+        <div class="grades-content" id="grades-content"></div>
+      </div>
+
+      <!-- Feedback -->
+      <div class="section">
+        <div class="section-header">Your Feedback</div>
+        <div class="section-body">
+          <textarea
+            class="feedback-textarea"
+            id="feedback"
+            placeholder="What do you think of this output? Any issues, suggestions, or things that look great?"
+          ></textarea>
+          <div class="feedback-status" id="feedback-status"></div>
+          <div class="prev-feedback" id="prev-feedback" style="display:none;">
+            <div class="prev-feedback-label">Previous feedback</div>
+            <div id="prev-feedback-text"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav" id="outputs-nav">
+      <button class="nav-btn" id="prev-btn" onclick="navigate(-1)">&#8592; Previous</button>
+      <button class="done-btn" id="done-btn" onclick="showDoneDialog()">Submit All Reviews</button>
+      <button class="nav-btn" id="next-btn" onclick="navigate(1)">Next &#8594;</button>
+    </div>
+    </div><!-- end panel-outputs -->
+
+    <!-- Benchmark panel (quantitative stats) -->
+    <div class="view-panel" id="panel-benchmark">
+      <div class="benchmark-view" id="benchmark-content">
+        <div class="benchmark-empty">No benchmark data available. Run a benchmark to see quantitative results here.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Done overlay -->
+  <div class="done-overlay" id="done-overlay">
+    <div class="done-card">
+      <h2>Review Complete</h2>
+      <p>Your feedback has been saved. Go back to your Claude Code session and tell Claude you're done reviewing.</p>
+      <div class="btn-row">
+        <button onclick="closeDoneDialog()">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ---- Embedded data (injected by generate_review.py) ----
+    const EMBEDDED_DATA = {"skill_name": "sciwrite", "runs": [{"id": "eval-0-prose-cleanup-old_skill", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "response.md", "type": "text", "content": "## Writing Quality Review: Draft Paragraph\n\n### Why it feels bloated\n\nThree things are happening at once, and only the first is about word choice:\n\n1. **Every verb has been turned into a noun.** \"The implementation of a strategy provides a reduction in latency\" is the sentence \"Hardware acceleration reduces latency\" wearing four extra words of packaging. The paragraph does this seven times, which roughly doubles its length without adding a single fact.\n\n2. **The paragraph is doing four unrelated jobs.** It contains a background claim (Introduction), a headline result (Results), a hardware wiring description (Methods), and a justification for a design choice (Introduction or Discussion). No single controlling idea holds them together, so the reader feels the length without feeling progress. This is the largest source of the bloat, and it is invisible at the sentence level, which is probably why you could not see it.\n\n3. **The connectives promise logic the sentences do not deliver.** \"However,\" \"Therefore,\" \"Furthermore,\" \"Moreover\" appear in four consecutive sentences, and at least one (\"Therefore\") links two facts that have no causal relationship. Readers slow down and re-read when a signposted inference does not arrive, and slowness reads as bloat.\n\nOriginal: 165 words. The revision below is 128 words spread across three sections, and it carries more information.\n\n---\n\n### Suggested revision\n\n**For the Results section (the paragraph's real content):**\n\n> Our pipeline for real-time defect detection achieves 31 frames per second at 1080p. It pairs a lightweight backbone with a hardware-accelerated non-maximum-suppression stage running on the programmable logic of the Kria KV260. Throughput matched that of comparable architectures, and the acceleration overhead added [X] ms per frame. Quantising the network weights to eight-bit integers cost [X] percentage points of detection accuracy, and memory pressure rose sharply once the batch size exceeded four.\n\n**For the Introduction (background plus design justification):**\n\n> Hardware acceleration reduces the inference latency of convolutional neural networks on resource-constrained embedded platforms [cite]. Most published solutions take this route, and we follow it here.\n\n**For the Methods section (implementation detail):**\n\n> The deep-learning processing unit (DPU) IP connects to the programmable logic over AXI4. The processing system runs a PetaLinux image whose Xilinx Runtime (XRT) stack manages DMA transfers between DDR and BRAM.\n\nTwo placeholders are marked [X]: see Pass 5.\n\n---\n\n### Pass 1: Clutter \u2014 6 issues\n\n| # | Severity | Original | Revision | Why |\n|---|---|---|---|---|\n| 1.1 | MAJOR | \"As it is well known, ...\" | Delete; attach a citation to the claim instead | If it is well known, a reference proves it. If no reference exists, the claim is not well known. |\n| 1.2 | MINOR | \"Due to the fact that\" | \"Because\" | Standard dead weight. |\n| 1.3 | MINOR | \"a majority of\" | \"most\" | |\n| 1.4 | MINOR | \"successful solutions\" | \"solutions\" | A solution that failed is not a solution; \"successful\" is carried by the noun. |\n| 1.5 | MINOR | \"convolutional neural networks that are deployed on\" | \"convolutional neural networks on\" | The relative clause carries no information. |\n| 1.6 | MINOR | \"there is a significant increase in memory pressure when the batch size is raised above four\" | \"memory pressure rose sharply once the batch size exceeded four\" | Expletive opening (\"there is\") plus a smothered verb. |\n\n### Pass 2: Voice and Verbs \u2014 5 issues\n\n| # | Severity | Original | Revision | Why |\n|---|---|---|---|---|\n| 2.1 | MAJOR | \"the implementation of a hardware acceleration strategy provides a reduction in the inference latency\" | \"hardware acceleration reduces the inference latency\" | Two nominalisations stacked (\"implementation of\", \"provides a reduction in\"). 13 words become 6. |\n| 2.2 | MAJOR | \"a degradation of the detection accuracy is caused by the quantisation of the network weights to eight-bit integers\" | \"quantising the network weights to eight-bit integers degrades detection accuracy\" | Passive plus two nominalisations, and it states the effect before the cause, which is backwards for the reader. |\n| 2.3 | MAJOR | \"The DPU IP was integrated into the PL via AXI4\" | \"The DPU IP connects to the programmable logic over AXI4\" | Passive hides whether this is your integration work or the vendor's stock configuration. If you did it, say \"We integrated\"; Methods-section passive is acceptable in most venues, so this one is a judgement call about which fact you want on record. |\n| 2.4 | MINOR | \"the proposed pipeline\" | \"our pipeline\" | \"Proposed\" is a submission-era hedge. You built it and measured it. |\n| 2.5 | MINOR | \"the batch size is raised\" | \"the batch size exceeded\" | Passive with no actor worth naming; the active form is shorter. |\n\n### Pass 3: Sentence Architecture \u2014 4 issues\n\n| # | Severity | Finding |\n|---|---|---|\n| 3.1 | MAJOR | **Buried predicate.** In \"the proposed pipeline ..., which combines a lightweight backbone with a hardware-accelerated non-maximum suppression stage running on the programmable logic of the Kria KV260, achieves 31 frames per second,\" 24 words separate the subject from its verb. The revision states the result first, then the architecture in its own sentence. |\n| 3.2 | MAJOR | **Your headline result is buried in position 5 of 7.** The 31 fps figure is the most important number in the paragraph and it arrives behind a \"Moreover,\" which signals \"here is another minor addition.\" Lead with it. |\n| 3.3 | MAJOR | **Broken connective.** \"Therefore, there is a significant increase in memory pressure ...\" does not follow from the preceding sentence about accuracy loss under quantisation. Quantisation reducing precision has no stated causal path to memory pressure at batch sizes above four; if anything, quantisation reduces memory footprint. Either supply the missing link or drop \"Therefore.\" I have not invented a causal claim in the revision: see the question below. |\n| 3.4 | MINOR | **Connective pile-up and flat rhythm.** Four consecutive sentences open with However / Therefore / Furthermore / Moreover, and every sentence runs 17 to 37 words with no short one for emphasis. The revision opens with a 13-word declarative. |\n\n### Pass 4: Terminology \u2014 3 issues\n\n| # | Severity | Finding |\n|---|---|---|\n| 4.1 | CRITICAL | **Eight undefined acronyms in a single sentence**: DPU, PL, PS, AXI4, XRT, DMA, DDR, BRAM. Of these, only DMA and DDR are safely universal. Define DPU, XRT, and PS at first use in the main text and again in any table or figure legend that uses them; readers do not read linearly. |\n| 4.2 | MAJOR | **Inconsistent term for one thing.** You write \"the programmable logic of the Kria KV260\" in one sentence and \"the PL\" in the next without linking them. Pick one form, define it once, then never vary it. |\n| 4.3 | CRITICAL | **Ambiguous antecedent.** \"Due to the fact that a majority of the successful solutions rely on this approach, we adopted it.\" Which approach? Three candidates precede it: hardware acceleration in general, eight-bit quantisation, or the specific DPU-on-PL architecture. The reader cannot tell what you adopted or why. Name it explicitly. |\n\n### Pass 5: Numbers and Citations \u2014 4 issues\n\n| # | Severity | Finding |\n|---|---|---|\n| 5.1 | MAJOR | \"the overhead was not significant\" gives the reader nothing. Report the number and its unit (ms per frame, or percent of frame time). Marked [X] in the revision. |\n| 5.2 | MAJOR | \"a degradation of the detection accuracy\" is unquantified. State the drop in mAP or percentage points. Marked [X] in the revision. |\n| 5.3 | MAJOR | **Double negative.** \"the results were not inconsistent with those reported for comparable architectures\" is litotes. If they matched, write \"matched.\" If they merely overlapped within error bars, write that. \"Not inconsistent\" reads as an author hedging a result they do not want examined. |\n| 5.4 | MINOR | \"significant\" appears twice in non-statistical senses (\"a significant increase\", \"not significant\"). In a quantitative paper, reserve \"significant\" for statistical significance or drop it. Also verify that 31 fps and 1080p match the corresponding table, and confirm that \"As it is well known\" is replaced by a primary reference rather than a review. |\n\n---\n\n### Top 5 priority revisions\n\n1. **Split the paragraph across three sections.** Background to the Introduction, the DPU/AXI4/PetaLinux wiring to Methods, the measurements to Results. This alone removes most of the perceived bloat.\n2. **Lead the Results paragraph with 31 fps at 1080p** and move the architecture description into a following sentence, clearing the 24-word buried predicate.\n3. **Unsmother the verbs.** \"provides a reduction in\" to \"reduces\", \"a degradation ... is caused by the quantisation of\" to \"quantising ... degrades\", \"the implementation of\" to nothing.\n4. **Fix or remove the \"Therefore.\"** As written, the paragraph asserts a causal chain from quantisation to memory pressure that it does not support.\n5. **Replace \"not significant\" and \"not inconsistent\" with numbers**, and define DPU, XRT, and PS at first use.\n\n---\n\n### Three things I need from you\n\n- **The \"Therefore\" question.** Is there a real causal link between eight-bit quantisation and memory pressure above batch size four, or are these two independent observations? I did not guess in the revision; I listed them as coordinate findings. If a mechanism exists, tell me and I will restore the logic.\n- **The two [X] values.** The accuracy drop and the overhead. Both revisions need them.\n- **Target journal.** Style requirements vary on first-person voice (\"we adopted\") and on whether Methods must stay passive. Tell me the venue and I will adjust the voice recommendations in Pass 2. I have kept your British spelling of \"quantisation\" throughout; flip it if the journal is US-based.\n\nOne content note, outside the scope of a writing review: the paragraph claims \"real-time defect detection\" and reports 31 fps. Confirm that 31 fps clears the real-time threshold for your application, since some reviewers will read \"real-time\" as 60 fps or as a latency bound rather than a throughput one.\n"}], "grading": {"expectations": [{"text": "flags the throat-clearing opener 'as it is well known'", "passed": true, "evidence": "matched"}, {"text": "flags the smothered verb 'provides a reduction in'", "passed": true, "evidence": "matched"}, {"text": "flags passive voice inverting cause and effect ('is caused by')", "passed": true, "evidence": "matched"}, {"text": "flags the buried predicate before 'achieves'", "passed": true, "evidence": "matched"}, {"text": "flags the double negative 'not inconsistent'", "passed": true, "evidence": "matched"}, {"text": "flags the expletive 'there is'", "passed": true, "evidence": "matched"}, {"text": "flags 'due to the fact that'", "passed": true, "evidence": "matched"}, {"text": "flags the redundant 'successful solutions'", "passed": true, "evidence": "matched"}, {"text": "flags undefined acronyms (DPU/PL/PS/XRT/BRAM)", "passed": true, "evidence": "matched"}, {"text": "flags the transition-word pile-up (However/Therefore/Furthermore/Moreover)", "passed": true, "evidence": "matched"}, {"text": "provides a concrete rewritten paragraph, not just advice", "passed": true, "evidence": "matched"}]}}, {"id": "eval-0-prose-cleanup-with_skill", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "response.md", "type": "text", "content": "Here is why it feels bloated: it is not one paragraph. It is three (background, your headline result, implementation detail) held together by *However*, *Therefore*, *Furthermore* and *Moreover* \u2014 transition words doing the job the logic should be doing. On top of that, your best sentence (31 fps at 1080p) is sixth out of seven, and almost every verb has been turned into a noun.\n\n## The upshots, one line per sentence\n\nReducing each sentence to its point makes the problem visible:\n\n1. Hardware acceleration reduces CNN inference latency on embedded platforms.\n2. Eight-bit quantisation degrades detection accuracy.\n3. Memory pressure rises above batch size four.\n4. Results match comparable architectures; overhead is small.\n5. **Our pipeline achieves 31 fps at 1080p.**\n6. Implementation: DPU in the PL over AXI4, PetaLinux on the PS, XRT handling DMA.\n7. We adopted this approach because most solutions use it.\n\nSeen as a list: 1 and 7 are the same idea (why hardware acceleration), split across the whole paragraph. 5 is the punchline and it is buried. 6 is Methods material that has wandered into an argument. And 3 does not follow from 2 \u2014 *Therefore* is claiming a causal link between quantisation and memory pressure that the sentences do not support.\n\n## Revision\n\n> Our pipeline \u2014 a lightweight backbone plus hardware-accelerated non-maximum suppression on the programmable logic of the Kria KV260 \u2014 achieves 31 frames per second at 1080p. We accelerate in hardware because it reduces inference latency for convolutional networks on embedded platforms, and because most comparable systems do [refs]. The cost is accuracy and memory: quantising the network weights to eight-bit integers degrades detection accuracy, and memory pressure rises sharply above a batch size of four. Our results agree with those reported for comparable architectures, and the overhead is small (X % of total runtime).\n>\n> The deep-learning processing unit (DPU) was integrated into the programmable logic over AXI4. The processor cores ran a PetaLinux image, and the Xilinx runtime managed transfers between external DDR memory and on-chip block RAM.\n\n165 words \u2192 126, and the second paragraph belongs in Methods, so the argument itself is 93 words. Fill in the *X %* \u2014 I did not invent a number.\n\n## What changed, and why\n\n**Structural**\n\n- **Punchline first.** The 31 fps result now opens. Everything after it is support, which is the order a reader wants and the reverse of the order you thought in.\n- **Merged sentences 1 and 7** into one clause. They were the same justification stated twice, 100 words apart.\n- **Split off the implementation sentence.** It is a different idea, and one paragraph gets one idea. Passive voice is fine there \u2014 it is Methods.\n- **Dropped the four transition words.** *However*, *Therefore*, *Furthermore*, *Moreover* were covering topic changes, not marking contrast or consequence. Once the sentences are in a logical order, only *and* and a colon are needed.\n\n**Sentence level**\n\n- *As it is well known* \u2192 deleted. A citation says \"this is established\" at no word cost.\n- *the implementation of a hardware acceleration strategy provides a reduction in* \u2192 *hardware acceleration reduces*. Two nominalisations and a smothered verb; 9 words \u2192 3.\n- *A degradation of the detection accuracy is caused by the quantisation of\u2026* \u2192 *quantising\u2026 degrades detection accuracy*. The passive had put the effect before the cause; both nouns are verbs again. 18 words \u2192 10.\n- *there is a significant increase in memory pressure* \u2192 *memory pressure rises sharply*. *There is* was hiding the verb. Keep *significant* for its statistical meaning.\n- *were not inconsistent with* \u2192 *agree with*. A double negative makes the reader do algebra.\n- *the overhead was not significant* \u2192 *the overhead is small (X %)*. *Not significant* is ambiguous between \"not statistically significant\" and \"small\" \u2014 say which, with the number.\n- *Due to the fact that a majority of the successful solutions* \u2192 *because most comparable systems*. Long-for-short, plus *successful solutions* (there is no unsuccessful solution).\n- **Buried predicate fixed with a dash.** Your original put 26 words between *The proposed pipeline* and *achieves*. The dash lets you keep the description in place because the reader gets the verb the moment it closes. Also dropped *for real-time defect detection* \u2014 the section title already says that.\n- **Acronyms expanded.** DPU, PL, PS, XRT and BRAM in one sentence is seven acronyms, five of them Xilinx-specific. A reader from an adjacent field is translating every word. Expanding them makes the sentence longer in words and much shorter in effort.\n\n## Content notes (not edited)\n\n1. **The causal claim in *Therefore*.** Quantising to int8 normally *reduces* memory footprint, so \"quantisation \u2192 memory pressure at batch > 4\" reads as a non-sequitur. If the two findings are independent, my version is right; if there is a real mechanism, state it.\n2. **\"The results\" in sentence 4 has no clear referent** \u2014 latency, accuracy, or both? I kept it vague because I could not tell; you should not.\n3. **Does the batch-size finding belong in this paragraph?** It is a Results observation sitting inside a motivation paragraph. Consider moving it.\n"}], "grading": {"expectations": [{"text": "flags the throat-clearing opener 'as it is well known'", "passed": true, "evidence": "matched"}, {"text": "flags the smothered verb 'provides a reduction in'", "passed": true, "evidence": "matched"}, {"text": "flags passive voice inverting cause and effect ('is caused by')", "passed": true, "evidence": "matched"}, {"text": "flags the buried predicate before 'achieves'", "passed": true, "evidence": "matched"}, {"text": "flags the double negative 'not inconsistent'", "passed": true, "evidence": "matched"}, {"text": "flags the expletive 'there is'", "passed": true, "evidence": "matched"}, {"text": "flags 'due to the fact that'", "passed": true, "evidence": "matched"}, {"text": "flags the redundant 'successful solutions'", "passed": true, "evidence": "matched"}, {"text": "flags undefined acronyms (DPU/PL/PS/XRT/BRAM)", "passed": true, "evidence": "matched"}, {"text": "flags the transition-word pile-up (However/Therefore/Furthermore/Moreover)", "passed": true, "evidence": "matched"}, {"text": "provides a concrete rewritten paragraph, not just advice", "passed": true, "evidence": "matched"}]}}, {"id": "eval-1-manuscript-review-old_skill", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "response.md", "type": "text", "content": "## Writing Quality Review: Lightweight Detector on an Embedded Camera (full draft)\n\n### Summary\n\nDo not submit this yet. Beyond the ordinary clutter and passive-voice problems, the draft contains three defects that a reviewer will catch immediately: the Abstract states the opposite of what the Results show, the Methods and Results use different names for the same two groups, and two metrics (PSNR, SSIM) are declared in the Methods but never reported. There is also not a single citation in the manuscript. The prose issues are fixable in an afternoon; the numerical contradictions need you to go back to your data before any editing is worth doing.\n\nOne process note up front: you did not say which journal you are targeting. Passive-voice tolerance in Methods, significant-figure conventions, and whether \"we\" is permitted vary considerably. Tell me the target and I will re-run Passes 2 and 5 against its style guide.\n\n---\n\n### Pass 1: Clutter \u2014 7 issues found\n\n**1. MINOR \u2014 Discussion, sentence 1**\nOriginal: \"This study is subject to a number of limitations.\"\nRevision: \"This study has three limitations.\"\nRationale: \"is subject to\" is a smothered verb and \"a number of\" is dead weight. Naming the count also forces you to actually enumerate them, which the current Discussion does not do.\n\n**2. MINOR \u2014 Discussion, sentence 3**\nOriginal: \"The provided results demonstrate that...\"\nRevision: \"The results show that...\" \u2014 or delete the opener entirely and lead with the finding.\nRationale: \"provided\" carries no information; the reader knows the results are the ones you provided. See also Pass 5, finding 4, for the larger problem with this sentence.\n\n**3. MAJOR \u2014 Introduction, sentence 1**\nOriginal: \"Edge inference is important.\"\nRevision: Delete, and open with the specific pressure that motivates the work, e.g. \"Embedded vision systems must sustain real-time frame rates within a power budget of a few watts, which rules out the backbone networks that dominate server-class benchmarks [ref].\"\nRationale: \"X is important\" is the weakest possible opening move in scientific prose. It asserts significance instead of demonstrating it, and it is uncitable.\n\n**4. MAJOR \u2014 Introduction, final sentence**\nOriginal: \"In this paper we present our work.\"\nRevision: \"This paper presents a MobileNet-based detector for a Zynq-class FPGA that sustains 31.4 fps at 94.2% accuracy, a 2.4-point accuracy gain over [baseline] at comparable latency.\"\nRationale: This is a placeholder sentence, not a contribution statement. Every reader decides whether to continue reading here. Fill in the bracketed items with your real numbers.\n\n**5. MINOR \u2014 Results, sentences 2\u20133**\nOriginal: \"The heavier group achieved a mean accuracy of 94.2%...\"\nRevision: \"The [obese] group averaged 94.2% accuracy (SD 1.2)...\"\nRationale: \"achieved a mean accuracy of\" is a nominalization plus filler; \"averaged\" does the same work in one word. (Group naming: see Pass 4.)\n\n**6. MINOR \u2014 Results, sentence 1**\nOriginal: \"Table 1 shows the performance of the two groups.\"\nRationale: This sentence is fine, but the paragraph then repeats every value in Table 1 in prose. Pick one. Either the table carries the numbers and the text carries the comparison (\"The [obese] group was faster by 2.7 ms and more accurate by 2.4 points (Table 1)\"), or you drop the table. Duplicating both wastes a third of your Results section.\n\n**7. MINOR \u2014 Discussion, sentence 2**\nOriginal: \"The sample size was limited and further work is required.\"\nRevision: \"With 930 images from a single sensor, these results may not transfer to other optics or lighting conditions; validation on a multi-sensor dataset is the necessary next step.\"\nRationale: \"further work is required\" is a phrase that appears in every paper and informs no one. Say what work, and why it is required.\n\n**Positive note:** you have not used the paired-dash aside (\"\u2014 like this \u2014\") anywhere in the draft. That construction is now a recognized marker of unedited machine-generated prose, and its absence works in your favour. Keep it that way when you revise.\n\n---\n\n### Pass 2: Voice and Verbs \u2014 4 issues found\n\n**1. MINOR \u2014 Methods, sentence 1 \u2014 acceptable passive, leave it**\n\"Images were acquired using a CMOS sensor.\" The actor is irrelevant here and this is standard Methods phrasing. No change needed. (What is missing is the sensor model, resolution, and acquisition conditions \u2014 a content note, not a voice problem.)\n\n**2. MAJOR \u2014 Methods, sentence 2**\nOriginal: \"The obese group (n = 930) and the lean group were compared.\"\nRevision: \"We compared the [obese] group (n = 930) with the [lean] group (n = ___).\"\nRationale: The passive hides both the actor and, more damagingly, the fact that the second group's n is missing. Converting to active makes the hole visible. You must supply that number.\n\n**3. MINOR \u2014 Methods, sentence 3**\nOriginal: \"Frames were processed by the FPGA fabric.\"\nRevision: \"The FPGA fabric processed each frame at [rate].\" \nRationale: The actor is named in the by-phrase, so the passive buys you nothing \u2014 just invert it.\n\n**4. MAJOR \u2014 Introduction, sentence 3**\nOriginal: \"Convolutional networks were introduced in the 1980s and became dominant after 2012.\"\nRevision: \"Fukushima introduced convolutional networks in 1980 [ref]; they became dominant after AlexNet won ILSVRC in 2012 [ref].\"\nRationale: Historical claims with no agent and no citation read as folklore. Naming the actor and the event makes the sentence both active and verifiable.\n\n**Nominalizations to resurrect** (all MINOR): \"achieved a mean accuracy of\" \u2192 \"averaged\"; \"is subject to a number of limitations\" \u2192 \"has three limitations\"; \"demonstrate that ... were not inconsistent with\" \u2192 see Pass 5.\n\n---\n\n### Pass 3: Sentence Architecture \u2014 3 issues found\n\n**1. MAJOR \u2014 Introduction, whole paragraph**\nThe paragraph is six sentences of undifferentiated background: deep learning is useful, CNNs have a history, many architectures exist, embedded platforms have evolved. None of it narrows toward your problem, and the paragraph ends without a gap statement. Restructure on the standard four-move pattern: (a) the application pressure, (b) what current approaches achieve, (c) the specific limitation that remains open \u2014 this is the sentence your draft is missing entirely \u2014 (d) what you did about it. The list of architectures (\"ResNet, MobileNet, EfficientNet and YOLO variants, each with different trade-offs\") should either name the specific trade-off that matters for your platform or be cut.\n\n**2. MINOR \u2014 Results, whole paragraph**\nEvery sentence is the same length and the same shape: [group] [verb] [metric] [value], joined by \"while\" or \"and\". The rhythm is monotonous and, worse, it flattens the one comparison that matters. Try: \"Accuracy differed little between groups (94.2% vs. 91.8%). Latency did not. The [obese] group ran at 12.4 \u00b1 1.0 ms against 15.1 \u00b1 1.2 ms for the [lean] group \u2014 a reduction of 18%.\" Short sentence for the point that carries the paper.\n\n**3. MINOR \u2014 Results**\nConsider a colon to set up the comparison rather than stacking \"with a standard deviation of\" clauses: \"Two figures separate the groups: accuracy (94.2% vs. 91.8%) and latency (12.4 vs. 15.1 ms).\"\n\n**Buried predicates:** none found. Your subjects sit next to their verbs throughout, which is genuinely good and worth preserving as you expand these sections.\n\n---\n\n### Pass 4: Terminology \u2014 4 issues found\n\n**1. CRITICAL \u2014 Methods vs. Results, group names**\nMethods defines \"the obese group\" and \"the lean group\". Results reports \"the heavier group\" and \"the lighter group\". Nothing tells the reader these are the same two groups. A referee must either assume it or ask you \u2014 and a careful referee will wonder whether the Results describe a third and fourth stratum. Pick one pair of labels and use it in the Abstract, Methods, Results, Discussion, Table 1, and every figure caption without exception. This is the single most mechanical fix in the review and the one most likely to draw a \"major revision\".\n\n**2. CRITICAL \u2014 content note, please read before editing anything**\nThe manuscript describes a lightweight object detector on an embedded FPGA camera, evaluated on images. \"Obese group\" and \"lean group\" are human body-composition categories. Either you are detecting something in images of subjects stratified by body habitus \u2014 in which case the Methods must say so explicitly, because at present nothing in the paper explains what these groups are, how subjects were assigned, or what ethical approval covers them \u2014 or these labels have been carried over from a different manuscript. I cannot tell which from the text, and I will not alter content to guess. Resolve this first; the naming fix in finding 1 is meaningless until you know what the groups actually are.\n\n**3. MAJOR \u2014 undefined acronyms**\nPSNR and SSIM appear in the Methods with no expansion (peak signal-to-noise ratio; structural similarity index measure). Both are common in imaging but neither is universally recognized outside it \u2014 define at first use. CMOS, FPGA, and DPU are handled correctly, though note that DPU is a vendor-specific term: keep the expansion you have and add the vendor and toolchain version, since \"Deep Learning Processing Unit\" means different hardware on different platforms.\n\n**4. MINOR \u2014 acronym redefinition**\nDPU is defined in the Methods and reused in the Results. That is correct for linear reading, but readers arrive at tables and figures out of order. Redefine DPU, PSNR, and SSIM in the Table 1 caption and in any figure legend where they appear.\n\n---\n\n### Pass 5: Numbers and Citations \u2014 6 issues found\n\n**1. CRITICAL \u2014 the Abstract contradicts the Results**\nAbstract: \"The obese group showed higher latency.\"\nResults: obese/heavier group 12.4 \u00b1 1.03 ms; lean/lighter group 15.1 \u00b1 1.2 ms.\nThe obese group's latency is *lower* \u2014 by 2.7 ms. The Abstract states the direction of your main effect backwards. Nothing else in the review matters as much as this. Fix the direction, then check every downstream sentence that depends on it.\n\n**2. CRITICAL \u2014 the \"18%\" appears to be the wrong quantity**\nAbstract: \"Detection improved by 18%.\" Accuracy went 91.8% \u2192 94.2%, which is 2.4 percentage points, or 2.6% relative. Neither is 18%. But (15.1 \u2212 12.4)/15.1 = 17.9% \u2248 18% \u2014 so the 18% is almost certainly the *latency reduction*, relabelled as a detection improvement. Combined with finding 1, the Abstract takes a latency gain, reverses its sign, and reports it as an accuracy gain. State it as: \"Latency fell by 18% (15.1 to 12.4 ms) at a 2.4-point accuracy gain.\" Also specify the baseline: \"improved\" against what?\n\n**3. CRITICAL \u2014 sample size cannot be reconciled**\nAbstract: \"930 images\". Methods: \"The obese group (n = 930) and the lean group were compared.\" If the obese group alone is 930, the total exceeds 930 and the Abstract is wrong; if 930 is the total, the Methods misattributes it. The lean group's n is never given at all. Report both group sizes and the total, and make Table 1 agree.\n\n**4. MAJOR \u2014 two declared metrics are never reported**\nMethods: \"We measured PSNR and SSIM.\" PSNR then never reappears anywhere in the manuscript. SSIM appears once, in the Discussion, with no numerical value. Either report both in the Results with values, or remove them from the Methods. Declaring a measurement and withholding the result is the pattern reviewers read as selective reporting.\n\n**5. MAJOR \u2014 false precision and inconsistent significant figures**\n\"31.4573 frames per second\" claims precision to 0.1 microseconds of frame time. Your latencies are given to 0.1 ms and your accuracies to 0.1%. Report \"31.5 fps\" (or 31.46 if you can defend two decimals) and state how many runs it averages over. Similarly, \"12.4 \u00b1 1.03\" mixes one and two decimals within a single value \u2014 use \"12.4 \u00b1 1.0\". And \"a standard deviation of 1.2\" has no units: percentage points, presumably, but say so.\n\n**6. CRITICAL \u2014 no citations anywhere**\nThe manuscript contains zero references. Claims currently floating unsupported include: the 1980s origin of CNNs, post-2012 dominance, the named architecture families and their trade-offs, the evolution of embedded platforms, and \u2014 most seriously \u2014 \"SSIM values were not inconsistent with prior work\", which compares your results to a literature you never cite. That sentence also uses a double negative to avoid committing to a claim. Say what the prior values are, cite them, and state plainly whether yours agree: \"Our SSIM of X matches the 0.9Y reported by [ref].\" As written, the sentence is unfalsifiable, and a reviewer will read it as concealment rather than caution.\n\n---\n\n### Top 5 Priority Revisions\n\n1. **Fix the reversed latency claim in the Abstract** (Pass 5, finding 1). Your Abstract currently asserts the opposite of your own Results. This alone would justify a desk rejection at a careful journal.\n\n2. **Reconcile the 18% figure and state what it measures** (Pass 5, finding 2). It looks like a latency reduction reported as a detection improvement. Correct the quantity and name the baseline.\n\n3. **Resolve what \"obese\" and \"lean\" groups are, then use one set of labels everywhere** (Pass 4, findings 1\u20132). Either the group definitions are missing from the Methods or they belong to a different paper. Until this is settled, the Results describe categories the reader cannot identify.\n\n4. **Report PSNR and SSIM values, or remove them from the Methods** (Pass 5, finding 4), and fix the sample-size arithmetic between the Abstract and Methods (finding 3).\n\n5. **Rewrite the Introduction around a gap statement and a real contribution sentence** (Pass 3, finding 1; Pass 1, findings 3\u20134), and add citations throughout (Pass 5, finding 6). \"Edge inference is important\" and \"In this paper we present our work\" are placeholders; the paragraph between them never states what problem remains open.\n\n---\n\nA closing observation on the shape of the draft. The Methods, Results, and Discussion are each a single short paragraph, and the Discussion interprets nothing \u2014 it lists a limitation, requests further work, and makes one hedged comparison to uncited literature. The sentence-level fixes above will make the prose cleaner, but the manuscript's larger problem is that it is a skeleton. Expect the Discussion in particular to triple in length: what does an 18% latency reduction buy a deployed system, why does the [obese] group behave differently, and what would falsify your explanation? Send me the expanded version and the target journal, and I will re-run all five passes on it.\n"}], "grading": {"expectations": [{"text": "catches keyword drift obese group -> heavier group", "passed": true, "evidence": "matched"}, {"text": "catches keyword drift lean group -> lighter group", "passed": true, "evidence": "matched"}, {"text": "flags 31.4573 as false precision", "passed": true, "evidence": "matched"}, {"text": "flags mismatched precision in 12.4 +/- 1.03", "passed": true, "evidence": "matched"}, {"text": "flags the abstract's 18% as unsupported in the body", "passed": true, "evidence": "matched"}, {"text": "flags Results as reciting the table instead of summarising", "passed": true, "evidence": "matched"}, {"text": "flags Discussion opening with limitations", "passed": false, "evidence": "no match for /(?i)start.{0,60}limitation|open.{0,60}limitation|limitations.{0,40}first sentence|don't start/"}, {"text": "flags the Introduction as a broad literature review with no gap or aim", "passed": true, "evidence": "matched"}, {"text": "flags DPU defined only in Methods", "passed": true, "evidence": "matched"}, {"text": "flags the absence of an explicit aim/hypothesis statement", "passed": true, "evidence": "matched"}]}}, {"id": "eval-1-manuscript-review-with_skill", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "response.md", "type": "text", "content": "# Manuscript review\n\nShort version: **do not submit this yet.** The prose problems are real but they are not what would sink it. Two things would stop a reviewer cold. First, the abstract and the Results contradict each other on the direction of your headline latency result. Second, the paper never says what question it is asking, and the two groups it compares \u2014 \"obese\" and \"lean\" \u2014 are introduced in Methods with no definition, no motivation, and no explanation of what body habitus has to do with an FPGA detector. As it stands a reviewer's most likely conclusion is that text from two different manuscripts has been merged.\n\nThe single most valuable thing you can do before touching a sentence: write down, in one sentence, what question this paper answers and what the two groups are. Everything below follows from that sentence, and three of the five sections currently cannot be written without it.\n\nI have organised this by what a reviewer hits first, not by section order.\n\n---\n\n## 1. Blocking problems\n\n### 1.1 Your latency result points in two directions\n\n> **Abstract:** \"The obese group showed higher latency.\"\n> **Results:** \"The mean latency of the heavier group was 12.4 \u00b1 1.03 ms and the mean latency of the lighter group was 15.1 \u00b1 1.2 ms.\"\n\n12.4 ms is *lower* than 15.1 ms. The heavier group was faster. One of these two sentences is wrong, and a reviewer who notices does not think \"typo\" \u2014 they think there is more than one version of the dataset in circulation. Fix this first, and check it against the raw table, not against the manuscript.\n\n### 1.2 The groups are never defined, and the paper never says why they exist\n\nMethods introduces them in a subordinate clause: *\"The obese group (n = 930) and the lean group were compared.\"* Nothing anywhere tells the reader:\n\n- what the subjects are (people? animals? the images are of what?)\n- how group membership was assigned (BMI? a threshold? measured or self-reported?)\n- how many are in the lean group \u2014 the *n* is missing entirely\n- **why a detector's accuracy or latency would depend on this at all**\n\nThat last one is the question every reviewer will write in the margin. Inference time on a fixed DPU at a fixed clock and input resolution is normally independent of image *content*; if your latency really varies by group, something content-dependent is in the loop \u2014 more detections reaching non-maximum suppression, a variable number of regions, a host-side stage. That is a genuinely interesting finding if it is real, and it is currently invisible. If it is not real, it is measurement noise being reported as a result.\n\n### 1.3 The sample size does not add up\n\nAbstract: *930 images*. Methods: *the obese group (n = 930)*. These cannot both be true unless the lean group has zero members. Either 930 is the whole dataset and the group *n*s are smaller, or each group has 930 and the abstract's total is wrong. State both group sizes explicitly in Methods, in the abstract, and in the Table 1 column headings.\n\n### 1.4 \"Detection improved by 18%\" appears nowhere in the body\n\nIt is in the abstract and in no other section. Improved relative to what? No baseline, no comparison condition and no prior configuration is described anywhere in the paper. An unsupported number in the abstract is the single most common thing that gets flagged in review, because abstract and body are read side by side. Either give the comparison in Results and Methods, or cut the sentence.\n\n### 1.5 PSNR and SSIM are measured but never reported\n\nMethods: *\"We measured PSNR and SSIM.\"* Results: nothing. Then the Discussion asserts that *\"SSIM values were not inconsistent with prior work\"* \u2014 a result that does not exist in the Results section, compared against prior work that is never cited. You cannot conclude something in the Discussion that you did not report in Results.\n\nSeparately, a content question you should pre-empt: PSNR and SSIM are image-*fidelity* metrics. In a detection-accuracy study their role needs one sentence of justification (compression? sensor pipeline? quantisation effect on the input?), or a reviewer will read them as filler.\n\n### 1.6 There are no references\n\nThe Introduction makes historical and comparative claims \u2014 convolutional networks in the 1980s, dominance after 2012, ResNet/MobileNet/EfficientNet/YOLO trade-offs, the evolution of embedded platforms \u2014 and cites nothing. The Discussion compares to \"prior work\" and cites nothing. Every one of those sentences needs a citation, and every citation needs checking against the sentence it supports.\n\n### 1.7 No ethics statement\n\nIf the images are of human subjects \u2014 and \"obese group\" and \"lean group\" strongly imply they are \u2014 you need an explicit statement of institutional approval and consent, plus a note on how the images are de-identified. Essentially every journal will desk-reject without it. If the subjects are not human, say what they are, which also fixes 1.2.\n\n---\n\n## 2. Section by section\n\n### Abstract\n\nCurrently four sentences: a methods fragment, two results, and an orphan claim. What is missing is most of an abstract \u2014 background, the aim, the conclusion, and the implication. It cannot stand alone, and the abstract is the part most people read and often the only part.\n\nThe shape to fill: one sentence of background \u2192 the question in explicit words (*we asked whether*, *we investigated*) \u2192 a minimal methods overview \u2192 two or three key numbers \u2192 a conclusion answering the question \u2192 **one sentence of implication**. That last one is the easiest to omit and the one a reader outside your field scans for.\n\nA skeleton using only numbers you already have \u2014 the bracketed parts are the ones I cannot fill in for you:\n\n> Edge deployments increasingly require detection to run [on-device, within a fixed power and latency budget]. We asked whether a lightweight detector on [board] sustains real-time throughput and uniform accuracy across [the two subject groups]. We deployed [architecture, quantisation] on the DPU of [board] and evaluated it on 930 images from an embedded CMOS camera, comparing [group A, n = ] with [group B, n = ]. The detector sustained 31.5 frames per second, with accuracy of 94.2 % and 91.8 % and mean latency of 12.4 ms and 15.1 ms in the two groups respectively [state the direction, once, correctly]. [One-sentence conclusion answering the question.] [One sentence on what this means for anyone deploying detection on constrained hardware.]\n\nWrite it last, after the rest is settled.\n\n### Introduction\n\nOne paragraph, and it is a compressed history of computer vision. It reviews deep learning broadly and embedded platforms broadly; it does not review the *specific* link your study is about. That is the classic introduction failure, and it is also why it is hard to write \u2014 narrowing to your question is what makes it easy.\n\nThree problems, in order of cost:\n\n- **No aim statement.** The sentence that should carry it \u2014 *\"In this paper we present our work\"* \u2014 carries nothing. Reviewers scan for the literal phrasing *we investigated / we asked whether / our aims were*. Give them it, and use the same words in the abstract.\n- **No gap.** Nothing here says why the question is still open. What have previous studies of [detection on embedded hardware across these groups] not settled? Summarise them at a high level \u2014 *of N studies, x did this and y did not* \u2014 not study by study.\n- **Throat-clearing.** *\"Edge inference is important.\"* asserts what a citation would establish for free, and *\"Deep learning has transformed computer vision over the past decade\"* is true of every paper in the field, which is another way of saying it does not belong to yours.\n\nTarget three short paragraphs \u2014 known, unknown, your study and approach \u2014 never more than five. Everything technical moves to Methods.\n\n### Methods\n\nNobody could replicate this. It is five short sentences, and the passive voice in it is fine \u2014 Methods is the one section where passive and jargon are legitimate \u2014 but the vagueness underneath the passive is not: *\"Frames were processed by the FPGA fabric\"* does not say what processing happened.\n\nMissing, at minimum:\n\n- the detector \u2014 architecture, input resolution, where the weights came from, training or fine-tuning procedure, quantisation scheme and bit width\n- the platform \u2014 board and part number, toolchain and versions, DPU configuration (the clock alone is not enough)\n- the camera \u2014 sensor part number, resolution, frame rate, lighting and acquisition conditions\n- the dataset \u2014 how the 930 images were collected, split into train/validation/test, and annotated; by whom, and with what agreement\n- **the group definition and assignment criteria** (see 1.2), with the *n* for both groups\n- how accuracy was defined (mAP? at what IoU? top-1?) and how latency was measured (end-to-end or inference only, over how many frames, warm or cold)\n- what PSNR and SSIM were computed on, and against what reference\n- the statistical analysis \u2014 what test compares the two groups\n- ethics approval and consent\n\nTwo things that would make it readable once it is complete: **subsections** with informative headings (*hardware / dataset and subjects / model and quantisation / measurement protocol / statistical analysis*), because readers skim Methods hunting for one specific item; and **a pipeline diagram**, which will convey the capture \u2192 pre-processing \u2192 DPU \u2192 post-processing path far faster than the prose will.\n\n### Results\n\nThis section reads the table aloud. That is the signature Results failure: the reader already has Table 1, and walking through every number in order buries the finding instead of delivering it.\n\n> **Original.** Table 1 shows the performance of the two groups. The heavier group achieved a mean accuracy of 94.2% with a standard deviation of 1.2, while the lighter group achieved a mean accuracy of 91.8% with a standard deviation of 1.4. The mean latency of the heavier group was 12.4 \u00b1 1.03 ms and the mean latency of the lighter group was 15.1 \u00b1 1.2 ms. The DPU throughput was 31.4573 frames per second.\n>\n> **Revision.** The detector sustained 31.5 frames per second on the DPU, above the 25 fps required for real-time operation [substitute your actual threshold]. Accuracy was 2.4 percentage points higher in the obese group and mean latency 2.7 ms lower, a difference of [x] % [(p = , test)] (Table 1).\n\nFour things changed. The opening sentence \u2014 *Table 1 shows the performance of the two groups* \u2014 went, because the table's title already says that; cite the table in parentheses and launch straight into the finding. The individual means went back into the table where they belong, and the text now carries the *between-group difference*, which is the number the study exists to produce. The throughput lost three decimal places. And the comparison is foregrounded rather than buried in the fourth sentence.\n\nAlso missing from Results:\n\n- **Any statistics.** No test, no p-value, no confidence interval, no *n* per group. A 94.2 % vs 91.8 % difference with SDs of 1.2 and 1.4 is meaningless until we know how many images are behind each.\n- **Units on the SDs.** \"a standard deviation of 1.2\" \u2014 percentage points, presumably, but say so.\n- **PSNR and SSIM**, which Methods promises.\n- **Negative results**, if any. They matter as much as the positive ones.\n\n### Discussion\n\nTwo sentences, and the first is *\"This study is subject to a number of limitations.\"* Opening a discussion with the limitations is the specific thing not to do \u2014 the introduction ends with the question, so the discussion opens by answering it. Bury the limitations several paragraphs down.\n\nRight now the section contains no answer, no context, no mechanism, no implication and no conclusion. It also contains an assertion about SSIM that Results never reported (1.5). Build it as an inverted cone:\n\n1. **The answer.** *We found that\u2026* \u2014 answering the question the introduction posed, and saying explicitly whether it is novel.\n2. Secondary findings, if any.\n3. **Context and mechanism.** Why would latency differ between the groups? How do these numbers compare with published detectors on comparable hardware?\n4. **Limitations \u2014 specific ones.** *\"The sample size was limited and further work is required\"* is boilerplate that would fit any paper in any field, and reviewers read it as such. What would *you* attack if you were reviewing this? Single sensor, single board, single lighting condition, group assignment method, no cross-validation, the confound behind the latency difference? Name those. Anticipating a reviewer's own objection buys more credit than almost anything else in the paper, even when you have no answer for it.\n5. **What's next**, concretely.\n6. **So what.** Why should someone outside your niche care?\n7. **Conclusion.** Restate the finding and leave a take-home message.\n\nFour to seven paragraphs is the normal range.\n\n---\n\n## 3. Consistency and terminology\n\n**The groups are renamed between sections.** Methods says *obese group* and *lean group*; Results says *heavier group* and *lighter group*; the abstract says *obese group*. A reader meeting \"heavier group\" in Results reasonably wonders whether a third category appeared. Pick one pair of names and use them identically everywhere \u2014 abstract, Methods, Results, Discussion, Table 1 title and column headings, figure legends. Repeating a keyword is correct; reaching for a synonym is what creates this.\n\n**Acronyms.** CMOS, PSNR, SSIM and YOLO are never spelled out anywhere. DPU is defined in Methods only, and readers who jump straight to Results meet it cold \u2014 define acronyms in every section, including tables and legends, because nobody reads linearly. Since PSNR, SSIM, CMOS and YOLO each appear once or twice, the cheapest fix is to spell them out and drop the acronym entirely. FPGA is standard enough to stand, but check what your target journal does.\n\n**Significant figures.** *31.4573 frames per second* claims precision to about a tenth of a microsecond in frame time. Report 31.5, or 31. Likewise *12.4 \u00b1 1.03*: the mean and its spread should carry the same precision \u2014 *12.4 \u00b1 1.0*.\n\n---\n\n## 4. Sentence-level edits worth making\n\nRanked; the ones above matter more than any of these.\n\n| Original | Revision | Why |\n|---|---|---|\n| \"The provided results demonstrate that SSIM values were not inconsistent with prior work.\" | \"SSIM values matched those reported for [architecture] [ref].\" | *The provided* is dead weight; *demonstrate that* \u2192 *show*; *not inconsistent* is a double negative that makes the reader do algebra. Note that the revision needs a number and a citation you have not supplied. |\n| \"This study is subject to a number of limitations.\" | (delete; move the content down and make it specific) | *A number of* is vague filler, and the sentence is in the wrong place. |\n| \"The sample size was limited and further work is required.\" | \"[Specific limitation, e.g. all images came from a single sensor under fixed illumination, so generalisation to other optics is untested.]\" | Two *to be* verbs doing no work, and boilerplate content. |\n| \"Embedded platforms have also evolved considerably, from microcontrollers to systems-on-chip with programmable logic.\" | \"Embedded platforms now range from microcontrollers to systems-on-chip with programmable logic [ref].\" | *Considerably* is an intensifier that adds no power; the sentence needs a citation more than an adverb. |\n| \"Edge inference is important.\" | (delete) | Asserts what the rest of the paragraph should demonstrate. |\n| \"In this paper we present our work.\" | \"We investigated whether [\u2026].\" | This is the aim sentence; make it carry the aim. |\n| \"Frames were processed by the FPGA fabric.\" | \"The programmable logic performed [pre-processing / inference / non-maximum suppression] on each frame.\" | Passive is fine here \u2014 the problem is the missing object. What processing? |\n| \"We measured PSNR and SSIM.\" | \"We computed peak signal-to-noise ratio and structural similarity between [X] and [Y].\" | Undefined acronyms, and no stated reference for the comparison. |\n\nThe Methods paragraph also runs five sentences of 5\u201311 words each, which reads as a list rather than a protocol. Once you add the missing detail, vary the structure with a colon or a semicolon so it does not stay monotonous.\n\n---\n\n## 5. Before you submit\n\nBeyond the above:\n\n- **Table 1** is cited but I do not have it. Check: three horizontal rules and no vertical ones; units on every variable; both group *n*s in the column headings; the same group names as the text; decimals no finer than the measurement supports; every acronym defined in the title, legend or footnotes; and a footnote saying exactly which groups were compared and with what test. Tables full of grid lines are a red flag reviewers associate \u2014 fairly or not \u2014 with problems elsewhere.\n- Read the target journal's author instructions in full and copy the table and reference formatting from a paper they have already published.\n- Add funding sources and conflict-of-interest declarations.\n- Check every reference against the sentence it supports once the citations exist, and trace key statistics to the original study rather than to a review that cites it.\n- Have someone outside your immediate group read it and tell you back the main finding, the take-home message, and why it matters. On the current draft they will not be able to.\n\n---\n\nIf it is useful, tell me what the two groups actually are and what question the study set out to answer, and I will draft the Introduction and the Discussion opener with you \u2014 those two are what the rest of the manuscript is currently missing a spine for.\n"}], "grading": {"expectations": [{"text": "catches keyword drift obese group -> heavier group", "passed": true, "evidence": "matched"}, {"text": "catches keyword drift lean group -> lighter group", "passed": true, "evidence": "matched"}, {"text": "flags 31.4573 as false precision", "passed": true, "evidence": "matched"}, {"text": "flags mismatched precision in 12.4 +/- 1.03", "passed": true, "evidence": "matched"}, {"text": "flags the abstract's 18% as unsupported in the body", "passed": true, "evidence": "matched"}, {"text": "flags Results as reciting the table instead of summarising", "passed": true, "evidence": "matched"}, {"text": "flags Discussion opening with limitations", "passed": true, "evidence": "matched"}, {"text": "flags the Introduction as a broad literature review with no gap or aim", "passed": true, "evidence": "matched"}, {"text": "flags DPU defined only in Methods", "passed": true, "evidence": "matched"}, {"text": "flags the absence of an explicit aim/hypothesis statement", "passed": true, "evidence": "matched"}]}}, {"id": "eval-2-revise-resubmit-old_skill", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "response.md", "type": "text", "content": "# This is not a rejection. It's a major revision.\n\nRead the second sentence again:\n\n> \"However, if you feel you can suitably address the reviewers' comments below, **I invite you to revise and resubmit**.\"\n\nThat phrase is an invitation, and editors do not extend it casually. \"Not acceptable for publication in its present form\" is standard journal language for *major revision*, not for rejection. A real rejection reads differently: \"we are unable to consider your manuscript further,\" \"this decision is final,\" \"we encourage you to submit elsewhere,\" and it contains no invitation to return.\n\nSo the honest summary of where you stand: eight comments, none of them fatal, from a paper the editor wants back. Papers at this stage are usually published. The main way authors lose from here is by responding badly, not by having been criticized.\n\nTwo more encouraging signals. Neither reviewer questioned your core result or your platform. And two of the eight comments are labelled or effectively minor. This is a workmanlike list, not a demolition.\n\n---\n\n## Triage the eight comments\n\nNot all reviewer comments cost the same. Sort them before you start, because your schedule is set by the expensive ones.\n\n**Tier 1: new work required (do these first)**\n\n| # | Comment | What it actually demands |\n|---|---|---|\n| R1.1 | No GPU baseline | New experiments |\n| R2.1 | Novelty over ref [14] not established | New argument, probably new comparison |\n\n**Tier 2: reanalysis (a day or two each)**\n\n| # | Comment | What it actually demands |\n|---|---|---|\n| R1.2 | Unpaired test should be paired | Re-run the statistics |\n| R2.2 | Batch size of four unjustified | An ablation, or a hardware-constraint explanation |\n\n**Tier 3: presentation (fast, but do not skip)**\n\n| # | Comment | What it actually demands |\n|---|---|---|\n| R1.3 | Figure 3 illegible at print size | Redraw |\n| R1.4 | English requires attention | Full language pass |\n| R2.3 | Acronyms used before definition | Mechanical sweep |\n\n---\n\n## Comment by comment\n\n### R1.1 \u2014 No GPU baseline (the biggest job)\n\nThis is the comment that most threatens the paper's central claim. If you assert efficiency gains on an FPGA and never show what the obvious alternative costs, the reviewer is right that the gain is unassessable. Do the experiment rather than arguing around it.\n\nMake the comparison one a skeptic would accept:\n\n- Compare against a platform in your power class, typically an embedded GPU such as a Jetson-class board, not a desktop card. If you also have a desktop GPU number, include it as a second row; it costs you nothing and pre-empts the follow-up question.\n- Hold the workload fixed: same model, same input resolution, same detection accuracy operating point. If precision differs (INT8 on the FPGA, FP16 on the GPU), say so explicitly and report the accuracy at each.\n- Report latency, throughput, and measured wall power, and derive frames per joule. Say how power was measured, since \"board TDP from the datasheet\" will be challenged.\n- Use a properly optimised GPU implementation (TensorRT or equivalent). A strawman baseline is worse than no baseline; reviewers spot it, and it damages your credibility on everything else.\n\nIf the hardware is genuinely unavailable, the fallback is a table of published numbers for the same network on comparable GPUs, clearly labelled as literature values rather than your own measurements. Treat this as a distant second choice, and tell the editor why in your response letter.\n\n### R2.1 \u2014 Novelty over reference [14]\n\nThis is the comment most likely to sink you on the second round, because it is a judgement rather than a fix. A vague answer invites the reviewer to repeat the objection, and second-round repeats are how papers get rejected.\n\nPull [14] up and write down, concretely, what you do that it does not. Architecture, target device class, precision strategy, memory scheme, throughput regime, application constraint. Then deliver the answer in two places:\n\n1. **Introduction:** an explicit paragraph naming [14] and stating the difference in one or two sentences. Do not bury it in a related-work list.\n2. **Results:** if at all possible, a row for [14] in your comparison table. A number is worth more than a paragraph. If [14]'s setup makes a fair head-to-head impossible, say precisely why (different device family, unreported power, no released code), which is itself a defensible response.\n\nBeware the trap of overclaiming here. \"Ours is entirely different\" reads as defensive. \"Ours differs in these three specific respects, and here is the measured consequence\" reads as confident.\n\n### R1.2 \u2014 Paired versus unpaired test\n\nThe reviewer is probably right, and this is a cheap way to buy credibility. If both methods were evaluated on the *same* test images or the same random seeds, the observations are paired, and an unpaired test throws away that structure and is the wrong analysis.\n\nRe-run it as a paired t-test, or a Wilcoxon signed-rank test if the per-pair differences are not plausibly normal. Report the mean difference with a confidence interval, not only a p-value.\n\nOne caution: check the new result before you write the response. Pairing usually *increases* power, so your effect will typically get stronger, but if it does not, you need to say so plainly. Reviewers forgive an honest correction. They do not forgive a quietly buried one.\n\n### R2.2 \u2014 Why batch size four?\n\nAnswer with data, not with assertion. The convincing form is a short ablation: batch size against latency, throughput, and on-chip memory use, showing that four is the knee of the curve. If instead the choice was forced by a resource limit (BRAM, DSP slices, the I/O buffer), say exactly which resource and at what batch size it runs out. Either answer is fine. \"It worked well in practice\" is not.\n\n### R1.3 \u2014 Figure 3 illegible\n\nRedraw as vector (PDF or EPS), not a screenshot. Set the figure at its true final column width, not scaled down from something larger. Keep all type at roughly 7 to 8 pt at that final size, matching the caption text. Then run the real test: print it at actual size, in grayscale, and read it at arm's length. Also check that the figure survives without colour, since some readers print in black and white.\n\n### R1.4 \u2014 The English\n\nTake this seriously even though it is the vaguest comment in the letter. Reviewers who write it are often signalling that the prose cost them effort, and that impression colours their view of everything else.\n\nI can do this pass for you properly. Send me the manuscript and I will run a full writing review: cutting clutter, converting the passives that hide who did what, unburying predicates in long sentences, and enforcing consistent terminology. That last one matters more than people expect. If the Methods say \"obese group,\" the Results must not say \"heavier group,\" and inconsistency of that kind reads to a reviewer as sloppiness of thought.\n\n### R2.3 \u2014 Undefined acronyms\n\nMechanical, so just be systematic. Every acronym gets defined at first use in the Abstract, again at first use in the main text, and again in each table or figure caption where it appears, because nobody reads a paper linearly. While you are there, consider deleting any acronym you invented for your own convenience and that appears fewer than five times; spelling it out is usually clearer.\n\n---\n\n## The response letter is half the work\n\nEditors and reviewers judge revisions largely through the response document. Structure it like this:\n\n- **Open with thanks and a one-paragraph summary** of the main changes. Keep it short and free of grievance.\n- **Quote every comment verbatim,** in the reviewers' original numbering, and answer each one directly beneath. Never merge two comments into one answer, and never silently skip one, including the ones marked \"minor.\"\n- **Point to the change:** \"Revised, Section 4.2, page 7, lines 214 to 229.\" A reviewer who cannot locate your change assumes you did not make it.\n- **Use formatting to make compliance visible.** Comment in bold or in a box, your response in plain text, quoted new manuscript text indented.\n- **Submit a marked-up manuscript** alongside the clean one, if the journal allows it.\n\nOn disagreement: you are allowed to push back, and reviewers are sometimes wrong. But disagree at most once or twice in a letter, always with evidence, and always by offering something instead. \"We respectfully disagree, for reason X; we have nevertheless added Y to address the underlying concern\" nearly always works. Flat refusal nearly always costs you a round.\n\nTone throughout: neutral and appreciative. If a comment annoys you, write the angry version, delete it, and write the real one the next morning.\n\n---\n\n## Practical next steps\n\n1. **Check the deadline now.** Look in the submission system for the resubmission date; the letter itself does not state one. Major revision windows are commonly one to three months.\n2. **Scope R1.1 immediately,** since GPU hardware access is the item most likely to blow up your schedule. Find out this week whether you can get the board.\n3. **Ask for an extension early if you need one.** Editors grant these routinely when asked in advance, and grant them grudgingly when asked the day before. A brief, specific request works best: you are adding a GPU baseline and need N extra weeks.\n4. **Do the Tier 3 items last but do not rush them.** They are what the reviewers see first on the second pass.\n\nOne thing not to do: do not withdraw and submit elsewhere. You would restart the clock, draw a new set of reviewers with a new set of objections, and give up an editor who has already told you he wants the paper.\n\n---\n\nSend me the manuscript whenever you like. The most useful things I can do next are the full language pass for R1.4, the acronym sweep for R2.3, and a draft of the point-by-point response letter once you know how you will handle the GPU baseline.\n"}], "grading": {"expectations": [{"text": "corrects the user: this is NOT a rejection", "passed": true, "evidence": "matched"}, {"text": "names it as revise-and-resubmit / the outcome to aim for", "passed": true, "evidence": "matched"}, {"text": "explains R&R letters open with rejection-sounding language", "passed": true, "evidence": "matched"}, {"text": "advises a numbered, point-by-point response mirroring the reviewers", "passed": true, "evidence": "matched"}, {"text": "advises including a tracked-changes version", "passed": true, "evidence": "matched"}, {"text": "advises naming the exact location of each change", "passed": true, "evidence": "matched"}, {"text": "advises a polite/appreciative tone", "passed": true, "evidence": "matched"}, {"text": "notes you need not make every requested change, but must justify refusals", "passed": true, "evidence": "matched"}, {"text": "notes a misidentified criticism usually still points at a real problem", "passed": true, "evidence": "matched"}]}}, {"id": "eval-2-revise-resubmit-with_skill", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "response.md", "type": "text", "content": "# This is not a rejection. It's the outcome you were aiming for.\n\nRead the first paragraph again:\n\n> \"...is not acceptable for publication in its present form. **However, if you feel you can suitably address the reviewers' comments below, I invite you to revise and resubmit.**\"\n\nThat second sentence is the actual decision. The first one is boilerplate that every revise-and-resubmit letter opens with, which is why almost everyone reads their first one as a rejection.\n\nOf the four possible outcomes \u2014 accepted as is (essentially never happens), accepted with minor revisions (rare), **revise and resubmit**, and rejected outright \u2014 this is the third, and it is the realistic best case. The editor is telling you they think the paper is publishable if you deal with these concerns. Editors *want* a revision round; it's what makes a paper defensible. Most papers that end up in journals go through exactly this.\n\nAn outright rejection reads differently: no invitation, and often a line about the work being better suited elsewhere. You don't have that. You have an invitation.\n\nOne more piece of evidence that the editor is on your side: none of the seven comments questions whether your result is real. Nobody says the detection doesn't work, the hardware claims are implausible, or the problem isn't worth solving. They're asking you to prove the comparison, fix the statistics, and explain yourself better. Those are all fixable.\n\n---\n\n## What to do, in order\n\n**1. Put the letter down for a day.** Your first reaction to criticism is defensive; everyone's is. The useful skill is shortening the gap between reading a criticism and being able to use it. By the time you write the response letter you should genuinely believe the reviews improved the paper \u2014 because they will have.\n\n**2. Check the deadline.** Journals typically give 30\u201390 days for a major revision. If Reviewer 1's GPU baseline needs more time than that, email the editor and ask for an extension *before* the clock runs out. Editors grant these routinely; silent lateness is what causes problems.\n\n**3. Do the work in the order below**, then write the response letter last, once you know what you actually did.\n\n**4. Submit three things:** the revised manuscript with tracked changes, a clean copy, and the point-by-point response letter. Most journals require the tracked version, and reviewers use it to verify you made the changes you claim.\n\n---\n\n## Triaging the seven comments\n\nTwo of these decide whether the paper is accepted. Three are half-day jobs. Sort them accordingly.\n\n### The two that matter\n\n**R1.1 \u2014 no GPU baseline.** This is the most serious comment in the letter, and the reviewer is right in a way that's worth sitting with: your paper's central claim is an efficiency claim, and an efficiency claim with no competing platform in it isn't assessable. You need a GPU number.\n\nPick a defensible comparison point and say why you picked it. An embedded GPU (Jetson-class) is the fair comparison for a low-power FPGA argument; a desktop GPU is the comparison that shows what you give up in throughput. Report both if you can, with power measured the same way on each \u2014 wall power or board power, stated explicitly, same measurement method, same workload, same input resolution, same accuracy target. Report performance-per-watt as well as raw latency, since that's where your contribution lives. If you can only manage one platform, say which and why in the Methods.\n\nIf the GPU wins on some axis, report that too. A paper that honestly says \"we are 3x slower in absolute throughput but 12x better per watt, which is what matters for this deployment\" is far stronger than one that quietly picks the flattering axis. Reviewers can smell the latter.\n\n**R2.1 \u2014 novelty over [14] is not established.** This is the other decisive one, and there's a principle worth applying here: *when a reviewer misidentifies a problem, there's usually still a problem.* Your instinct will be that the reviewer didn't read carefully, or doesn't know [14] well enough. Assume first that the fault is yours, because it usually is. If a domain expert read your paper and couldn't see what's new relative to [14], your Introduction is not stating your contribution clearly enough.\n\nThe fix is concrete: add an explicit paragraph, ideally near the end of the Introduction or in Related Work, that names [14] and states in specific technical terms what is different \u2014 the architecture, the quantisation scheme, the memory hierarchy, the target class, whatever it actually is. A table with a row for [14] and a row for your work, columns for the dimensions you differ on, does this better than prose. And if [14] is close enough that a direct empirical comparison is possible, run it. That converts an argument into a result, which is a much stronger answer.\n\nBe honest with yourself here. If, having done this exercise, the delta over [14] genuinely is thin, the right move is to reframe the contribution around what *is* solid \u2014 the deployment result, the power envelope, the real-time constraint \u2014 rather than defending a novelty claim you can't support.\n\n### The cheap-but-load-bearing one\n\n**R1.2 \u2014 paired vs unpaired test in \u00a74.2.** If you evaluated the same test images or the same defect instances under both conditions, the reviewer is correct and a paired test is the right one. Rerun it.\n\nTwo things to watch. First, a paired test is usually *more* powerful, so this will often help you \u2014 but check the direction, because if a result loses significance under the correct test you must report that and adjust the claims in the Abstract and Discussion accordingly. Painful, but concealing it is the kind of thing that gets papers retracted. Second, this comment is a prompt to audit the whole statistical section, not just the one test: check your assumption of normality, whether you're correcting for multiple comparisons, and whether you report effect sizes and not just p-values. Reviewer 1 found one problem; make sure a third reviewer doesn't find its neighbours.\n\nIf you're confident the data are genuinely unpaired \u2014 different images in each condition \u2014 then say so explicitly and explain the design in the manuscript, because the reviewer's misreading means the design wasn't clear.\n\n### The three quick ones \u2014 do them, don't argue\n\nWorth knowing: roughly 60% of reviewer criticisms across all papers concern writing quality and the presentation of tables and figures, not the science. Three of your seven comments are exactly that. This is not a footnote to the revision; it's most of it.\n\n**R1.3 \u2014 Figure 3 illegible at print size.** Rebuild it, don't rescale it. Print it at the journal's actual single- or double-column width and look at it on paper. Minimum ~7pt final font size, vector format (PDF/EPS) rather than a raster screenshot, no reliance on colour alone to distinguish series, and consider splitting it into panels if you're cramming too much in. While you're there, check every other figure the same way \u2014 the reviewer named Figure 3, but they probably stopped naming them after the first offender.\n\n**R1.4 \u2014 English requires attention throughout.** Take this at face value and don't take it personally; it's the single most common comment in the corpus. Don't just run a spellchecker. Get a fluent colleague or a professional editing service to go through it \u2014 many journals partner with one, and IEEE has an author-services option. In your response letter, say once what you did (\"the manuscript has been professionally copy-edited; changes appear throughout the tracked version\") rather than itemising every correction.\n\n**R2.2 \u2014 why batch size four?** You have two options. The weak one is a sentence of justification. The strong one is a small ablation: run batch sizes 1, 2, 4, 8 and report latency and throughput, then point at the table and say \"four is the knee of the curve\" or \"eight exceeds on-chip buffer capacity for this device.\" An analysis always beats an assertion when an analysis is cheap, and this one is cheap.\n\n**R2.3 \u2014 acronyms used before definition.** Sweep the manuscript, define each acronym at first use in the abstract and again at first use in the body, and drop any acronym you use fewer than three or four times \u2014 it isn't earning its place. Half an hour of work.\n\n---\n\n## The response letter\n\nWrite it after the work is done. Structure it like this, mirroring their numbering exactly so that an editor comparing your letter against the reviews never has to search for anything:\n\n```\nDear Dr <Editor>,\n\nWe thank you and the reviewers for the careful reading of our manuscript and\nfor comments that have substantially improved it. We have addressed each point\nbelow, and all changes are marked in the tracked-changes version.\n\nREVIEWER 1\n\n1. \"The authors do not compare against any GPU baseline...\"\n\n   We agree that the efficiency claim could not be assessed without a\n   comparison platform. We have added a GPU baseline on <platform>, measured\n   under identical <conditions>, and now report latency, throughput and\n   performance-per-watt for both platforms in new Table 3 and Figure 5.\n   See Section 4.3, page 8.\n\n2. ...\n\nREVIEWER 2\n\n1. ...\n\nYours sincerely,\n<corresponding author, on behalf of all authors>\n```\n\nRules that make the difference between a letter that works and one that irritates:\n\n- **Answer every point**, including the ones you found annoying. Silence on a comment reads as evasion and the editor will notice.\n- **Always name the location** \u2014 page, section, line numbers. \"We have clarified this\" without a pointer makes the reviewer hunt, and hunting makes reviewers cross.\n- **Never claim a change you didn't make.** Reviewers check against the tracked copy.\n- **You don't have to make every change.** For anything you genuinely disagree with, give a specific technical reason in one or two sentences, respectfully, and concede something adjacent where you can \u2014 make an assumption explicit, add a limitation sentence \u2014 so the editor sees you engaged rather than stonewalled. Refusing flat with no accommodation is what makes an editor side with the reviewer.\n- **But don't spend capital on small things.** The acronyms and the figure aren't worth a single sentence of pushback. Just do them, and save your disagreement for a point that matters.\n- **No sarcasm and no wounded dignity.** Both are perfectly visible in writing, and neither has ever helped anyone.\n\n---\n\n## The short version\n\nYou have a revise-and-resubmit, which is a good outcome, not a bad one. The two things that will decide acceptance are the GPU baseline and a clear statement of what you do that [14] doesn't. Rerun the statistics properly and be honest if the answer changes. Fix the figure, the English and the acronyms, because that category of complaint is most of what reviewers complain about. Then write a numbered, located, polite point-by-point letter, and send it back with tracked changes.\n"}], "grading": {"expectations": [{"text": "corrects the user: this is NOT a rejection", "passed": true, "evidence": "matched"}, {"text": "names it as revise-and-resubmit / the outcome to aim for", "passed": true, "evidence": "matched"}, {"text": "explains R&R letters open with rejection-sounding language", "passed": false, "evidence": "no match for /(?i)(sounds?|reads?|looks?) like a rejection|not acceptable for publication.{0,120}(standard|invitation|before)|standard journal language/"}, {"text": "advises a numbered, point-by-point response mirroring the reviewers", "passed": true, "evidence": "matched"}, {"text": "advises including a tracked-changes version", "passed": true, "evidence": "matched"}, {"text": "advises naming the exact location of each change", "passed": true, "evidence": "matched"}, {"text": "advises a polite/appreciative tone", "passed": true, "evidence": "matched"}, {"text": "notes you need not make every requested change, but must justify refusals", "passed": true, "evidence": "matched"}, {"text": "notes a misidentified criticism usually still points at a real problem", "passed": true, "evidence": "matched"}]}}], "previous_feedback": {}, "previous_outputs": {}};
+
+    // ---- State ----
+    let feedbackMap = {};  // run_id -> feedback text
+    let currentIndex = 0;
+    let visitedRuns = new Set();
+
+    // ---- Init ----
+    async function init() {
+      // Load saved feedback from server — but only if this isn't a fresh
+      // iteration (indicated by previous_feedback being present). When
+      // previous feedback exists, the feedback.json on disk is stale from
+      // the prior iteration and should not pre-fill the textareas.
+      const hasPrevious = Object.keys(EMBEDDED_DATA.previous_feedback || {}).length > 0
+        || Object.keys(EMBEDDED_DATA.previous_outputs || {}).length > 0;
+      if (!hasPrevious) {
+        try {
+          const resp = await fetch("/api/feedback");
+          const data = await resp.json();
+          if (data.reviews) {
+            for (const r of data.reviews) feedbackMap[r.run_id] = r.feedback;
+          }
+        } catch { /* first run, no feedback yet */ }
+      }
+
+      document.getElementById("skill-name").textContent = EMBEDDED_DATA.skill_name;
+      showRun(0);
+
+      // Wire up feedback auto-save
+      const textarea = document.getElementById("feedback");
+      let saveTimeout = null;
+      textarea.addEventListener("input", () => {
+        clearTimeout(saveTimeout);
+        document.getElementById("feedback-status").textContent = "";
+        saveTimeout = setTimeout(() => saveCurrentFeedback(), 800);
+      });
+    }
+
+    // ---- Navigation ----
+    function navigate(delta) {
+      const newIndex = currentIndex + delta;
+      if (newIndex >= 0 && newIndex < EMBEDDED_DATA.runs.length) {
+        saveCurrentFeedback();
+        showRun(newIndex);
+      }
+    }
+
+    function updateNavButtons() {
+      document.getElementById("prev-btn").disabled = currentIndex === 0;
+      document.getElementById("next-btn").disabled =
+        currentIndex === EMBEDDED_DATA.runs.length - 1;
+    }
+
+    // ---- Show a run ----
+    function showRun(index) {
+      currentIndex = index;
+      const run = EMBEDDED_DATA.runs[index];
+
+      // Progress
+      document.getElementById("progress").textContent =
+        `${index + 1} of ${EMBEDDED_DATA.runs.length}`;
+
+      // Prompt
+      document.getElementById("prompt-text").textContent = run.prompt;
+
+      // Config badge
+      const badge = document.getElementById("config-badge");
+      const configMatch = run.id.match(/(with_skill|without_skill|new_skill|old_skill)/);
+      if (configMatch) {
+        const config = configMatch[1];
+        const isBaseline = config === "without_skill" || config === "old_skill";
+        badge.textContent = config.replace(/_/g, " ");
+        badge.className = "config-badge " + (isBaseline ? "config-baseline" : "config-primary");
+        badge.style.display = "inline-block";
+      } else {
+        badge.style.display = "none";
+      }
+
+      // Outputs
+      renderOutputs(run);
+
+      // Previous outputs
+      renderPrevOutputs(run);
+
+      // Grades
+      renderGrades(run);
+
+      // Previous feedback
+      const prevFb = (EMBEDDED_DATA.previous_feedback || {})[run.id];
+      const prevEl = document.getElementById("prev-feedback");
+      if (prevFb) {
+        document.getElementById("prev-feedback-text").textContent = prevFb;
+        prevEl.style.display = "block";
+      } else {
+        prevEl.style.display = "none";
+      }
+
+      // Feedback
+      document.getElementById("feedback").value = feedbackMap[run.id] || "";
+      document.getElementById("feedback-status").textContent = "";
+
+      updateNavButtons();
+
+      // Track visited runs and promote done button when all visited
+      visitedRuns.add(index);
+      const doneBtn = document.getElementById("done-btn");
+      if (visitedRuns.size >= EMBEDDED_DATA.runs.length) {
+        doneBtn.classList.add("ready");
+      }
+
+      // Scroll main content to top
+      document.querySelector(".main").scrollTop = 0;
+    }
+
+    // ---- Render outputs ----
+    function renderOutputs(run) {
+      const container = document.getElementById("outputs-body");
+      container.innerHTML = "";
+
+      const outputs = run.outputs || [];
+      if (outputs.length === 0) {
+        container.innerHTML = '<div class="empty-state">No output files</div>';
+        return;
+      }
+
+      for (const file of outputs) {
+        const fileDiv = document.createElement("div");
+        fileDiv.className = "output-file";
+
+        // Always show file header with download link
+        const header = document.createElement("div");
+        header.className = "output-file-header";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = file.name;
+        header.appendChild(nameSpan);
+        const dlBtn = document.createElement("a");
+        dlBtn.className = "dl-btn";
+        dlBtn.textContent = "Download";
+        dlBtn.download = file.name;
+        dlBtn.href = getDownloadUri(file);
+        header.appendChild(dlBtn);
+        fileDiv.appendChild(header);
+
+        const content = document.createElement("div");
+        content.className = "output-file-content";
+
+        if (file.type === "text") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          content.appendChild(pre);
+        } else if (file.type === "image") {
+          const img = document.createElement("img");
+          img.src = file.data_uri;
+          img.alt = file.name;
+          content.appendChild(img);
+        } else if (file.type === "pdf") {
+          const iframe = document.createElement("iframe");
+          iframe.src = file.data_uri;
+          content.appendChild(iframe);
+        } else if (file.type === "xlsx") {
+          renderXlsx(content, file.data_b64);
+        } else if (file.type === "binary") {
+          const a = document.createElement("a");
+          a.className = "download-link";
+          a.href = file.data_uri;
+          a.download = file.name;
+          a.textContent = "Download " + file.name;
+          content.appendChild(a);
+        } else if (file.type === "error") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          pre.style.color = "var(--red)";
+          content.appendChild(pre);
+        }
+
+        fileDiv.appendChild(content);
+        container.appendChild(fileDiv);
+      }
+    }
+
+    // ---- XLSX rendering via SheetJS ----
+    function renderXlsx(container, b64Data) {
+      try {
+        const raw = Uint8Array.from(atob(b64Data), c => c.charCodeAt(0));
+        const wb = XLSX.read(raw, { type: "array" });
+
+        for (let i = 0; i < wb.SheetNames.length; i++) {
+          const sheetName = wb.SheetNames[i];
+          const ws = wb.Sheets[sheetName];
+
+          if (wb.SheetNames.length > 1) {
+            const sheetLabel = document.createElement("div");
+            sheetLabel.style.cssText =
+              "font-weight:600; font-size:0.8rem; color:#b0aea5; margin-top:0.5rem; margin-bottom:0.25rem;";
+            sheetLabel.textContent = "Sheet: " + sheetName;
+            container.appendChild(sheetLabel);
+          }
+
+          const htmlStr = XLSX.utils.sheet_to_html(ws, { editable: false });
+          const wrapper = document.createElement("div");
+          wrapper.innerHTML = htmlStr;
+          container.appendChild(wrapper);
+        }
+      } catch (err) {
+        container.textContent = "Error rendering spreadsheet: " + err.message;
+      }
+    }
+
+    // ---- Grades ----
+    function renderGrades(run) {
+      const section = document.getElementById("grades-section");
+      const content = document.getElementById("grades-content");
+
+      if (!run.grading) {
+        section.style.display = "none";
+        return;
+      }
+
+      const grading = run.grading;
+      section.style.display = "block";
+      // Reset to collapsed
+      content.classList.remove("open");
+      document.getElementById("grades-arrow").classList.remove("open");
+
+      const summary = grading.summary || {};
+      const expectations = grading.expectations || [];
+
+      let html = '<div style="padding: 1rem;">';
+
+      // Summary line
+      const passRate = summary.pass_rate != null
+        ? Math.round(summary.pass_rate * 100) + "%"
+        : "?";
+      const badgeClass = summary.pass_rate >= 0.8 ? "grade-pass" : summary.pass_rate >= 0.5 ? "" : "grade-fail";
+      html += '<div class="grades-summary">';
+      html += '<span class="grade-badge ' + badgeClass + '">' + passRate + '</span>';
+      html += '<span>' + (summary.passed || 0) + ' passed, ' + (summary.failed || 0) + ' failed of ' + (summary.total || 0) + '</span>';
+      html += '</div>';
+
+      // Assertions list
+      html += '<ul class="assertion-list">';
+      for (const exp of expectations) {
+        const statusClass = exp.passed ? "pass" : "fail";
+        const statusIcon = exp.passed ? "\u2713" : "\u2717";
+        html += '<li class="assertion-item">';
+        html += '<span class="assertion-status ' + statusClass + '">' + statusIcon + '</span>';
+        html += '<span>' + escapeHtml(exp.text) + '</span>';
+        if (exp.evidence) {
+          html += '<div class="assertion-evidence">' + escapeHtml(exp.evidence) + '</div>';
+        }
+        html += '</li>';
+      }
+      html += '</ul>';
+
+      html += '</div>';
+      content.innerHTML = html;
+    }
+
+    function toggleGrades() {
+      const content = document.getElementById("grades-content");
+      const arrow = document.getElementById("grades-arrow");
+      content.classList.toggle("open");
+      arrow.classList.toggle("open");
+    }
+
+    // ---- Previous outputs (collapsible) ----
+    function renderPrevOutputs(run) {
+      const section = document.getElementById("prev-outputs-section");
+      const content = document.getElementById("prev-outputs-content");
+      const prevOutputs = (EMBEDDED_DATA.previous_outputs || {})[run.id];
+
+      if (!prevOutputs || prevOutputs.length === 0) {
+        section.style.display = "none";
+        return;
+      }
+
+      section.style.display = "block";
+      // Reset to collapsed
+      content.classList.remove("open");
+      document.getElementById("prev-outputs-arrow").classList.remove("open");
+
+      // Render the files into the content area
+      content.innerHTML = "";
+      const wrapper = document.createElement("div");
+      wrapper.style.padding = "1rem";
+
+      for (const file of prevOutputs) {
+        const fileDiv = document.createElement("div");
+        fileDiv.className = "output-file";
+
+        const header = document.createElement("div");
+        header.className = "output-file-header";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = file.name;
+        header.appendChild(nameSpan);
+        const dlBtn = document.createElement("a");
+        dlBtn.className = "dl-btn";
+        dlBtn.textContent = "Download";
+        dlBtn.download = file.name;
+        dlBtn.href = getDownloadUri(file);
+        header.appendChild(dlBtn);
+        fileDiv.appendChild(header);
+
+        const fc = document.createElement("div");
+        fc.className = "output-file-content";
+
+        if (file.type === "text") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          fc.appendChild(pre);
+        } else if (file.type === "image") {
+          const img = document.createElement("img");
+          img.src = file.data_uri;
+          img.alt = file.name;
+          fc.appendChild(img);
+        } else if (file.type === "pdf") {
+          const iframe = document.createElement("iframe");
+          iframe.src = file.data_uri;
+          fc.appendChild(iframe);
+        } else if (file.type === "xlsx") {
+          renderXlsx(fc, file.data_b64);
+        } else if (file.type === "binary") {
+          const a = document.createElement("a");
+          a.className = "download-link";
+          a.href = file.data_uri;
+          a.download = file.name;
+          a.textContent = "Download " + file.name;
+          fc.appendChild(a);
+        }
+
+        fileDiv.appendChild(fc);
+        wrapper.appendChild(fileDiv);
+      }
+
+      content.appendChild(wrapper);
+    }
+
+    function togglePrevOutputs() {
+      const content = document.getElementById("prev-outputs-content");
+      const arrow = document.getElementById("prev-outputs-arrow");
+      content.classList.toggle("open");
+      arrow.classList.toggle("open");
+    }
+
+    // ---- Feedback (saved to server -> feedback.json) ----
+    function saveCurrentFeedback() {
+      const run = EMBEDDED_DATA.runs[currentIndex];
+      const text = document.getElementById("feedback").value;
+
+      if (text.trim() === "") {
+        delete feedbackMap[run.id];
+      } else {
+        feedbackMap[run.id] = text;
+      }
+
+      // Build reviews array from map
+      const reviews = [];
+      for (const [run_id, feedback] of Object.entries(feedbackMap)) {
+        if (feedback.trim()) {
+          reviews.push({ run_id, feedback, timestamp: new Date().toISOString() });
+        }
+      }
+
+      fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reviews, status: "in_progress" }),
+      }).then(() => {
+        document.getElementById("feedback-status").textContent = "Saved";
+      }).catch(() => {
+        // Static mode or server unavailable — no-op on auto-save,
+        // feedback will be downloaded on final submit
+        document.getElementById("feedback-status").textContent = "Will download on submit";
+      });
+    }
+
+    // ---- Done ----
+    function showDoneDialog() {
+      // Save current textarea to feedbackMap (but don't POST yet)
+      const run = EMBEDDED_DATA.runs[currentIndex];
+      const text = document.getElementById("feedback").value;
+      if (text.trim() === "") {
+        delete feedbackMap[run.id];
+      } else {
+        feedbackMap[run.id] = text;
+      }
+
+      // POST once with status: complete — include ALL runs so the model
+      // can distinguish "no feedback" (looks good) from "not reviewed"
+      const reviews = [];
+      const ts = new Date().toISOString();
+      for (const r of EMBEDDED_DATA.runs) {
+        reviews.push({ run_id: r.id, feedback: feedbackMap[r.id] || "", timestamp: ts });
+      }
+      const payload = JSON.stringify({ reviews, status: "complete" }, null, 2);
+      fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: payload,
+      }).then(() => {
+        document.getElementById("done-overlay").classList.add("visible");
+      }).catch(() => {
+        // Server not available (static mode) — download as file
+        const blob = new Blob([payload], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "feedback.json";
+        a.click();
+        URL.revokeObjectURL(url);
+        document.getElementById("done-overlay").classList.add("visible");
+      });
+    }
+
+    function closeDoneDialog() {
+      // Reset status back to in_progress
+      saveCurrentFeedback();
+      document.getElementById("done-overlay").classList.remove("visible");
+    }
+
+    // ---- Toast ----
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("visible");
+      setTimeout(() => toast.classList.remove("visible"), 2000);
+    }
+
+    // ---- Keyboard nav ----
+    document.addEventListener("keydown", (e) => {
+      // Don't capture when typing in textarea
+      if (e.target.tagName === "TEXTAREA") return;
+
+      if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault();
+        navigate(-1);
+      } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault();
+        navigate(1);
+      }
+    });
+
+    // ---- Util ----
+    function getDownloadUri(file) {
+      if (file.data_uri) return file.data_uri;
+      if (file.data_b64) return "data:application/octet-stream;base64," + file.data_b64;
+      if (file.type === "text") return "data:text/plain;charset=utf-8," + encodeURIComponent(file.content);
+      return "#";
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // ---- View switching ----
+    function switchView(view) {
+      document.querySelectorAll(".view-tab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".view-panel").forEach(p => p.classList.remove("active"));
+      document.querySelector(`[onclick="switchView('${view}')"]`).classList.add("active");
+      document.getElementById("panel-" + view).classList.add("active");
+    }
+
+    // ---- Benchmark rendering ----
+    function renderBenchmark() {
+      const data = EMBEDDED_DATA.benchmark;
+      if (!data) return;
+
+      // Show the tabs
+      document.getElementById("view-tabs").style.display = "flex";
+
+      const container = document.getElementById("benchmark-content");
+      const summary = data.run_summary || {};
+      const metadata = data.metadata || {};
+      const notes = data.notes || [];
+
+      let html = "";
+
+      // Header
+      html += "<h2 style='font-family: Poppins, sans-serif; margin-bottom: 0.5rem;'>Benchmark Results</h2>";
+      html += "<p style='color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.25rem;'>";
+      if (metadata.skill_name) html += "<strong>" + escapeHtml(metadata.skill_name) + "</strong> &mdash; ";
+      if (metadata.timestamp) html += metadata.timestamp + " &mdash; ";
+      if (metadata.evals_run) html += "Evals: " + metadata.evals_run.join(", ") + " &mdash; ";
+      html += (metadata.runs_per_configuration || "?") + " runs per configuration";
+      html += "</p>";
+
+      // Summary table
+      html += '<table class="benchmark-table">';
+
+      function fmtStat(stat, pct) {
+        if (!stat) return "—";
+        const suffix = pct ? "%" : "";
+        const m = pct ? (stat.mean * 100).toFixed(0) : stat.mean.toFixed(1);
+        const s = pct ? (stat.stddev * 100).toFixed(0) : stat.stddev.toFixed(1);
+        return m + suffix + " ± " + s + suffix;
+      }
+
+      function deltaClass(val) {
+        if (!val) return "";
+        const n = parseFloat(val);
+        if (n > 0) return "benchmark-delta-positive";
+        if (n < 0) return "benchmark-delta-negative";
+        return "";
+      }
+
+      // Discover config names dynamically (everything except "delta")
+      const configs = Object.keys(summary).filter(k => k !== "delta");
+      const configA = configs[0] || "config_a";
+      const configB = configs[1] || "config_b";
+      const labelA = configA.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const labelB = configB.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const a = summary[configA] || {};
+      const b = summary[configB] || {};
+      const delta = summary.delta || {};
+
+      html += "<thead><tr><th>Metric</th><th>" + escapeHtml(labelA) + "</th><th>" + escapeHtml(labelB) + "</th><th>Delta</th></tr></thead>";
+      html += "<tbody>";
+
+      html += "<tr><td><strong>Pass Rate</strong></td>";
+      html += "<td>" + fmtStat(a.pass_rate, true) + "</td>";
+      html += "<td>" + fmtStat(b.pass_rate, true) + "</td>";
+      html += '<td class="' + deltaClass(delta.pass_rate) + '">' + (delta.pass_rate || "—") + "</td></tr>";
+
+      // Time (only show row if data exists)
+      if (a.time_seconds || b.time_seconds) {
+        html += "<tr><td><strong>Time (s)</strong></td>";
+        html += "<td>" + fmtStat(a.time_seconds, false) + "</td>";
+        html += "<td>" + fmtStat(b.time_seconds, false) + "</td>";
+        html += '<td class="' + deltaClass(delta.time_seconds) + '">' + (delta.time_seconds ? delta.time_seconds + "s" : "—") + "</td></tr>";
+      }
+
+      // Tokens (only show row if data exists)
+      if (a.tokens || b.tokens) {
+        html += "<tr><td><strong>Tokens</strong></td>";
+        html += "<td>" + fmtStat(a.tokens, false) + "</td>";
+        html += "<td>" + fmtStat(b.tokens, false) + "</td>";
+        html += '<td class="' + deltaClass(delta.tokens) + '">' + (delta.tokens || "—") + "</td></tr>";
+      }
+
+      html += "</tbody></table>";
+
+      // Per-eval breakdown (if runs data available)
+      const runs = data.runs || [];
+      if (runs.length > 0) {
+        const evalIds = [...new Set(runs.map(r => r.eval_id))].sort((a, b) => a - b);
+
+        html += "<h3 style='font-family: Poppins, sans-serif; margin-bottom: 0.75rem;'>Per-Eval Breakdown</h3>";
+
+        const hasTime = runs.some(r => r.result && r.result.time_seconds != null);
+        const hasErrors = runs.some(r => r.result && r.result.errors > 0);
+
+        for (const evalId of evalIds) {
+          const evalRuns = runs.filter(r => r.eval_id === evalId);
+          const evalName = evalRuns[0] && evalRuns[0].eval_name ? evalRuns[0].eval_name : "Eval " + evalId;
+
+          html += "<h4 style='font-family: Poppins, sans-serif; margin: 1rem 0 0.5rem; color: var(--text);'>" + escapeHtml(evalName) + "</h4>";
+          html += '<table class="benchmark-table">';
+          html += "<thead><tr><th>Config</th><th>Run</th><th>Pass Rate</th>";
+          if (hasTime) html += "<th>Time (s)</th>";
+          if (hasErrors) html += "<th>Crashes During Execution</th>";
+          html += "</tr></thead>";
+          html += "<tbody>";
+
+          // Group by config and render with average rows
+          const configGroups = [...new Set(evalRuns.map(r => r.configuration))];
+          for (let ci = 0; ci < configGroups.length; ci++) {
+            const config = configGroups[ci];
+            const configRuns = evalRuns.filter(r => r.configuration === config);
+            if (configRuns.length === 0) continue;
+
+            const rowClass = ci === 0 ? "benchmark-row-with" : "benchmark-row-without";
+            const configLabel = config.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+
+            for (const run of configRuns) {
+              const r = run.result || {};
+              const prClass = r.pass_rate >= 0.8 ? "benchmark-delta-positive" : r.pass_rate < 0.5 ? "benchmark-delta-negative" : "";
+              html += '<tr class="' + rowClass + '">';
+              html += "<td>" + configLabel + "</td>";
+              html += "<td>" + run.run_number + "</td>";
+              html += '<td class="' + prClass + '">' + ((r.pass_rate || 0) * 100).toFixed(0) + "% (" + (r.passed || 0) + "/" + (r.total || 0) + ")</td>";
+              if (hasTime) html += "<td>" + (r.time_seconds != null ? r.time_seconds.toFixed(1) : "—") + "</td>";
+              if (hasErrors) html += "<td>" + (r.errors || 0) + "</td>";
+              html += "</tr>";
+            }
+
+            // Average row
+            const rates = configRuns.map(r => (r.result || {}).pass_rate || 0);
+            const avgRate = rates.reduce((a, b) => a + b, 0) / rates.length;
+            const avgPrClass = avgRate >= 0.8 ? "benchmark-delta-positive" : avgRate < 0.5 ? "benchmark-delta-negative" : "";
+            html += '<tr class="benchmark-row-avg ' + rowClass + '">';
+            html += "<td>" + configLabel + "</td>";
+            html += "<td>Avg</td>";
+            html += '<td class="' + avgPrClass + '">' + (avgRate * 100).toFixed(0) + "%</td>";
+            if (hasTime) {
+              const times = configRuns.map(r => (r.result || {}).time_seconds).filter(t => t != null);
+              html += "<td>" + (times.length ? (times.reduce((a, b) => a + b, 0) / times.length).toFixed(1) : "—") + "</td>";
+            }
+            if (hasErrors) html += "<td></td>";
+            html += "</tr>";
+          }
+          html += "</tbody></table>";
+
+          // Per-assertion detail for this eval
+          const runsWithExpectations = {};
+          for (const config of configGroups) {
+            runsWithExpectations[config] = evalRuns.filter(r => r.configuration === config && r.expectations && r.expectations.length > 0);
+          }
+          const hasAnyExpectations = Object.values(runsWithExpectations).some(runs => runs.length > 0);
+          if (hasAnyExpectations) {
+            // Collect all unique assertion texts across all configs
+            const allAssertions = [];
+            const seen = new Set();
+            for (const config of configGroups) {
+              for (const run of runsWithExpectations[config]) {
+                for (const exp of (run.expectations || [])) {
+                  if (!seen.has(exp.text)) {
+                    seen.add(exp.text);
+                    allAssertions.push(exp.text);
+                  }
+                }
+              }
+            }
+
+            html += '<table class="benchmark-table" style="margin-top: 0.5rem;">';
+            html += "<thead><tr><th>Assertion</th>";
+            for (const config of configGroups) {
+              const label = config.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+              html += "<th>" + escapeHtml(label) + "</th>";
+            }
+            html += "</tr></thead><tbody>";
+
+            for (const assertionText of allAssertions) {
+              html += "<tr><td>" + escapeHtml(assertionText) + "</td>";
+
+              for (const config of configGroups) {
+                html += "<td>";
+                for (const run of runsWithExpectations[config]) {
+                  const exp = (run.expectations || []).find(e => e.text === assertionText);
+                  if (exp) {
+                    const cls = exp.passed ? "benchmark-delta-positive" : "benchmark-delta-negative";
+                    const icon = exp.passed ? "\u2713" : "\u2717";
+                    html += '<span class="' + cls + '" title="Run ' + run.run_number + ': ' + escapeHtml(exp.evidence || "") + '">' + icon + "</span> ";
+                  } else {
+                    html += "— ";
+                  }
+                }
+                html += "</td>";
+              }
+              html += "</tr>";
+            }
+            html += "</tbody></table>";
+          }
+        }
+      }
+
+      // Notes
+      if (notes.length > 0) {
+        html += '<div class="benchmark-notes">';
+        html += "<h3>Analysis Notes</h3>";
+        html += "<ul>";
+        for (const note of notes) {
+          html += "<li>" + escapeHtml(note) + "</li>";
+        }
+        html += "</ul></div>";
+      }
+
+      container.innerHTML = html;
+    }
+
+    // ---- Start ----
+    init();
+    renderBenchmark();
+  </script>
+</body>
+</html>

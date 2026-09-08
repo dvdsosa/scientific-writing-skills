@@ -1,0 +1,26 @@
+{
+  "name": "sciwrite",
+  "version": "1.0.0",
+  "description": "Scientific writing skills distilled from Stanford's Writing in the Sciences (Kristin Sainani): edit prose, structure an IMRaD manuscript, run the writing process, navigate publication ethics and peer review, draft proposals and letters, and write for general audiences.",
+  "author": {
+    "name": "David Sosa",
+    "url": "https://github.com/dvdsosa"
+  },
+  "homepage": "https://github.com/dvdsosa/scientific-writing-skills",
+  "repository": "https://github.com/dvdsosa/scientific-writing-skills",
+  "license": "MIT",
+  "keywords": [
+    "scientific-writing",
+    "academic-writing",
+    "manuscript",
+    "editing",
+    "imrad",
+    "peer-review",
+    "grant-writing",
+    "specific-aims",
+    "science-communication",
+    "lay-summary",
+    "thesis",
+    "research"
+  ]
+}
