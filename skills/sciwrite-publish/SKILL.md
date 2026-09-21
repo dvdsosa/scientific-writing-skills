@@ -12,7 +12,8 @@ description: >
   a previous paper, an unsolicited invitation from a journal or conference, or
   whether a journal is legitimate. Also use it when someone asks how to choose
   where to submit. Do NOT use it for writing the manuscript itself
-  (sciwrite-manuscript) or for grant applications (sciwrite-proposals).
+  (sciwrite-manuscript) or for grant applications or responding to grant or
+  fellowship reviewers (sciwrite-proposals).
 ---
 
 # Publication, ethics and peer review

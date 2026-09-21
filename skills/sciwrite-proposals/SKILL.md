@@ -10,8 +10,9 @@ description: >
   recommendation or reference letter, a personal statement, a motivation letter,
   or an application essay for a PhD programme, postdoc, scholarship or residency.
   Also use it when someone asks how to ask for a recommendation letter, how to
-  narrow a review topic, or what reviewers of a fellowship are actually scored
-  against. Do NOT use it for research papers (sciwrite-manuscript) or for
+  narrow a review topic, what reviewers of a fellowship are actually scored
+  against, or how to respond to reviewers of a grant or fellowship application.
+  Do NOT use it for research papers (sciwrite-manuscript) or for
   sentence-level editing alone (sciwrite-prose).
 ---
 
