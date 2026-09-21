@@ -12,7 +12,7 @@ description: >
   mess and I don't know why". Also use it when someone asks how to organise
   sources and notes before writing, or wants a revision strategy for a finished
   draft. Do NOT use it for editing prose (sciwrite-prose) or for what belongs in
-  each section (sciwrite-manuscript).
+  each section, or the order in which to write the sections (sciwrite-manuscript).
 ---
 
 # The writing process

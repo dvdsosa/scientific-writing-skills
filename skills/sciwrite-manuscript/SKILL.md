@@ -7,7 +7,7 @@ description: >
   restructuring or reviewing any part of a research paper, journal article,
   conference paper or thesis chapter: "help me with the introduction", "how do I
   structure the discussion", "is my abstract missing anything", "my results
-  section is too long", "what order should I write this in", "does this table
+  section is too long", "what order should I write the sections in", "does this table
   look right", "where should the limitations go". Also use it when someone asks
   what belongs in a given section, or which verb tense a section takes. Use it
   together with sciwrite-prose, which handles sentence-level editing once the
