@@ -55,15 +55,22 @@ text, just read it.
 ## The scripts do the grep so you can do the judgment
 
 ```bash
-# Plugin install: CLAUDE_PLUGIN_ROOT is set for you.
-# Skills-only install (symlinked or copied into ~/.claude/skills/): resolve it.
-SCIWRITE="${CLAUDE_PLUGIN_ROOT:-$(cd -P ~/.claude/skills/sciwrite-prose/../.. && pwd)}"
+# The scripts ship in sciwrite-prose/scripts/. Find that skill wherever it was
+# installed: plugin, `npx skills add` (project or global), or a manual copy.
+SCIWRITE=$(for d in "${CLAUDE_PLUGIN_ROOT:-.}/skills" .claude/skills .agents/skills \
+                    ~/.claude/skills ~/.agents/skills; do
+  [ -f "$d/sciwrite-prose/scripts/prose_audit.py" ] && { (cd "$d/sciwrite-prose/scripts" && pwd); break; }
+done)
 
-python "$SCIWRITE/scripts/extract_text.py" paper.tex
-python "$SCIWRITE/scripts/prose_audit.py" paper.tex --section discussion
-python "$SCIWRITE/scripts/keyword_consistency.py" paper.tex
-python "$SCIWRITE/scripts/numeric_consistency.py" paper.tex
+python "$SCIWRITE/extract_text.py" paper.tex
+python "$SCIWRITE/prose_audit.py" paper.tex --section discussion
+python "$SCIWRITE/keyword_consistency.py" paper.tex
+python "$SCIWRITE/numeric_consistency.py" paper.tex
 ```
+
+If `$SCIWRITE` comes back empty, the sciwrite-prose skill is not installed: do
+these checks by reading, and tell the user that
+`npx skills add dvdsosa/scientific-writing-skills` adds the scripts.
 
 `extract_text.py` handles `.tex`, `.docx`, `.md` and `.txt`, and gives you a
 section map so `--section discussion` works without anyone pasting anything.
