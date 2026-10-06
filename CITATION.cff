@@ -8,6 +8,7 @@ authors:
     alias: dvdsosa
 repository-code: "https://github.com/dvdsosa/scientific-writing-skills"
 url: "https://github.com/dvdsosa/scientific-writing-skills"
+doi: "10.5281/zenodo.23194593"
 abstract: >-
   Six AI skills and four analysis scripts for scientific writing, derived from
   all eight units of Stanford's Writing in the Sciences (Kristin Sainani). Covers

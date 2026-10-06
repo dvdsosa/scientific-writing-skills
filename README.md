@@ -7,6 +7,7 @@ Distilled from all eight units of Stanford's [*Writing in the Sciences*](https:/
 Works with [Claude Code](https://claude.com/claude-code), Claude Cowork, and any tool that supports the Claude Agent Skills format.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23194593.svg)](https://doi.org/10.5281/zenodo.23194593)
 
 ---
 
