@@ -22,7 +22,7 @@ A paragraph from `examples/`, before and after `sciwrite-prose`:
 
 > Hardware acceleration cuts inference latency for convolutional neural networks on resource-constrained embedded platforms, but quantising the weights to eight-bit integers costs detection accuracy, and memory pressure climbs sharply once the batch size passes four.
 >
-> Our pipeline pairs a lightweight backbone with hardware-accelerated non-maximum suppression on the programmable logic of the Kria KV260, reaching 31 frames per second at 1080p. The deep-learning processing unit talks to the programmable logic over AXI4, and the processing system runs a PetaLinux image whose runtime moves data between DDR and block RAM. These results match those reported for comparable architectures, and the overhead stays under 3%. We chose this design because most published solutions rely on it.
+> Our pipeline pairs a lightweight backbone with hardware-accelerated non-maximum suppression on the programmable logic of the Kria KV260, reaching 31 frames per second at 1080p. The deep-learning processing unit talks to the programmable logic over AXI4, and the processing system runs a PetaLinux image whose runtime moves data between DDR and block RAM. These results agree with those reported for comparable architectures, and the overhead stays small. We chose this design because most published solutions rely on it.
 
 | | Before | After |
 |---|---|---|
@@ -33,7 +33,10 @@ A paragraph from `examples/`, before and after `sciwrite-prose`:
 | Defects flagged by `prose_audit.py` | 25 | **4** |
 
 Same claims, same numbers, a third shorter. The skill named every one of those 25
-defects and said why; the script found them without reading for meaning.
+defects and said why; the script found them without reading for meaning. It also
+added no number the author never gave: "the overhead was not significant" stays
+vague in the rewrite, and the skill asks the author for the figure instead of
+inventing one.
 
 ---
 
@@ -91,33 +94,41 @@ python scripts/numeric_consistency.py paper.tex --json
 
 ## Install
 
-### Claude Code
+### Any agent (Claude Code, Cursor, Codex, Copilot, Gemini CLI and others)
 
 ```bash
-git clone https://github.com/dvdsosa/scientific-writing-skills.git
-claude plugin install ./scientific-writing-skills
+npx skills add dvdsosa/scientific-writing-skills
 ```
 
-Or add the marketplace and install from it:
+The [skills CLI](https://skills.sh) asks which agents and which skills to
+install; add `-g` to install for your user rather than for the current project,
+or `--skill sciwrite-prose` to pick one skill.
+
+### Claude Code plugin
 
 ```bash
 claude plugin marketplace add dvdsosa/scientific-writing-skills
 claude plugin install sciwrite
 ```
 
-### Running the scripts
-
-The skills call the scripts through `$SCIWRITE`, which resolves either way:
+Or from a local clone:
 
 ```bash
-SCIWRITE="${CLAUDE_PLUGIN_ROOT:-$(cd -P ~/.claude/skills/sciwrite-prose/../.. && pwd)}"
-python "$SCIWRITE/scripts/prose_audit.py" paper.tex
+git clone https://github.com/dvdsosa/scientific-writing-skills.git
+claude plugin install ./scientific-writing-skills
 ```
 
-`CLAUDE_PLUGIN_ROOT` is set only for a plugin install. If you symlinked or copied
-the skills into `~/.claude/skills/` instead, the fallback resolves the repository
-from the skill directory, so the same command works in both cases. To call the
-scripts directly from anywhere, point at the clone:
+### Running the scripts
+
+The scripts live inside the `sciwrite-prose` skill
+(`skills/sciwrite-prose/scripts/`, also reachable as `scripts/` at the repository
+root). The skills find them wherever `sciwrite-prose` was installed — plugin,
+`npx skills add` for a project or globally, or a manual copy into
+`~/.claude/skills/`. Install `sciwrite-prose` alongside any other skill you
+choose; without it, `sciwrite-manuscript` and `sciwrite-process` fall back to
+doing the checks by reading.
+
+To call the scripts yourself, point at the clone:
 
 ```bash
 python ~/path/to/scientific-writing-skills/scripts/prose_audit.py paper.tex
@@ -127,12 +138,10 @@ Pass the **master** `.tex` file, not a single chapter: `keyword_consistency.py`
 and `numeric_consistency.py` compare *across* sections, and an isolated fragment
 gives them nothing to cross-check.
 
-### As individual skills
+### By hand
 
-Copy any `skills/sciwrite-*/` directory into `~/.claude/skills/`. Each skill is
-self-contained apart from the shared `scripts/`; if you install skills
-individually, copy `scripts/` alongside them and adjust the paths in the
-`SKILL.md` files.
+Copy the `skills/sciwrite-*/` directories you want into `~/.claude/skills/` (or
+your agent's skills directory). Copy `sciwrite-prose` too if you want the scripts.
 
 ### Verify
 
@@ -212,7 +221,7 @@ Adams (Stanford Science Communication).
 
 [MIT](LICENSE) for the plugin code and the written instructions. The underlying
 course is © Stanford University; this repository quotes short excerpts for
-educational commentary and does not redistribute course materials.
+educational commentary and does not redistribute course materials. See [NOTICE](NOTICE).
 
 ---
 

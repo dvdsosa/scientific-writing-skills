@@ -6,14 +6,14 @@
   },
   "metadata": {
     "description": "Scientific writing skills for Claude, distilled from Stanford's Writing in the Sciences.",
-    "version": "1.0.0"
+    "version": "1.1.0"
   },
   "plugins": [
     {
       "name": "sciwrite",
       "source": "./",
       "description": "Six skills for scientific writing: edit research prose, structure an IMRaD manuscript, run the writing process, handle peer review and publication ethics, draft grants and letters, and write for general audiences.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "author": { "name": "David Sosa" },
       "homepage": "https://github.com/dvdsosa/scientific-writing-skills",
       "license": "MIT",
