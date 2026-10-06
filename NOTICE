@@ -1,0 +1,14 @@
+NOTICE ON SOURCE MATERIAL
+
+This repository distils the pedagogical content of "Writing in the Sciences"
+(Kristin Sainani, Stanford University) into machine-actionable instructions. The
+MIT licence in LICENSE covers the code and the original prose in this repository.
+
+It does not cover, and this repository does not redistribute, the course itself:
+its videos, slides, transcripts, exercises or assessments. Short excerpts are
+quoted for educational commentary and attributed to their module. Copyright in
+the course remains with Stanford University and the course author.
+
+This project is independent and unaffiliated. If you represent Stanford
+University or the course author and would like any excerpt removed or reworded,
+open an issue and it will be addressed promptly.
