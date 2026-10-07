@@ -3,9 +3,11 @@ title: "Scientific Writing Skills: a Claude plugin distilled from Writing in the
 message: "If you use this plugin in work you publish, please cite it, and please cite the course it derives from."
 type: software
 authors:
-  - family-names: Sosa
+  - family-names: Sosa-Trejo
     given-names: David
     alias: dvdsosa
+    orcid: "https://orcid.org/0000-0002-6337-8698"
+    affiliation: "Universidad de Las Palmas de Gran Canaria"
 repository-code: "https://github.com/dvdsosa/scientific-writing-skills"
 url: "https://github.com/dvdsosa/scientific-writing-skills"
 doi: "10.5281/zenodo.23194593"
