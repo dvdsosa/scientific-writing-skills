@@ -63,3 +63,7 @@ restructures three skills is not.
 
 Run the scripts against the fixture files before submitting, and against a real
 manuscript if you have one.
+
+---
+
+<p align="center"><a href="https://github.com/dvdsosa/scientific-writing-skills#readme">⬅ <b>Back to the main README</b></a></p>
