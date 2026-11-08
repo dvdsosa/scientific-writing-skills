@@ -1,7 +1,7 @@
 {
   "name": "scientific-writing-skills",
   "owner": {
-    "name": "David Sosa",
+    "name": "David Sosa-Trejo",
     "url": "https://github.com/dvdsosa"
   },
   "metadata": {
@@ -14,7 +14,7 @@
       "source": "./",
       "description": "Six skills for scientific writing: edit research prose, structure an IMRaD manuscript, run the writing process, handle peer review and publication ethics, draft grants and letters, and write for general audiences.",
       "version": "1.1.0",
-      "author": { "name": "David Sosa" },
+      "author": { "name": "David Sosa-Trejo" },
       "homepage": "https://github.com/dvdsosa/scientific-writing-skills",
       "license": "MIT",
       "keywords": [
